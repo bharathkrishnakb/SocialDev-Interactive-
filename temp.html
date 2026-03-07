@@ -1,0 +1,1989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>RISE — Dead Season | Rebuild the World</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rubik+Dirt&family=Bebas+Neue&family=Share+Tech+Mono&family=Barlow:ital,wght@0,400;0,600;0,700;0,900;1,400&display=swap');
+:root{--ink:#080c06;--earth:#0d1408;--mud:#1a1c0e;--moss:#1e2810;--olive:#3a4a1c;--sage:#6a8030;--amber:#c08818;--gold:#e8a820;--rust:#c03018;--bone:#c8bc98;--fog:#7a8860;--white:#e0d8c0;--sdg1:#e5243b;--sdg2:#dda63a;--sdg3:#4c9f38;--sdg11:#fd9d24;}
+*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
+body{background:#060a04;color:var(--white);font-family:'Barlow',sans-serif;overflow-x:hidden;cursor:crosshair}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:0.3;mix-blend-mode:overlay;}
+
+/* ══════════════════════════════════════════
+   HOMEPAGE — WAR FIELD COMMAND INTERFACE
+══════════════════════════════════════════ */
+#homepage {
+  min-height:100vh;position:relative;overflow-x:hidden;
+  background:radial-gradient(ellipse 120% 80% at 50% 0%, #0d1408 0%, #060a04 55%, #020402 100%);
+}
+#bg-canvas {position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+#intro-overlay {
+  position:fixed;inset:0;z-index:500;background:#030604;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:40px 24px;transition:opacity 1.4s ease;
+}
+#intro-overlay.hidden{opacity:0;pointer-events:none;}
+.io-symbol{font-size:72px;margin-bottom:18px;filter:drop-shadow(0 0 50px rgba(180,40,20,1));animation:ioPulse 3s ease infinite;}
+@keyframes ioPulse{0%,100%{transform:scale(1)rotate(0deg);filter:drop-shadow(0 0 40px rgba(180,40,20,.7))}50%{transform:scale(1.04)rotate(180deg);filter:drop-shadow(0 0 80px rgba(240,150,20,1));}}
+.io-scanline{font-family:'Share Tech Mono';font-size:10px;letter-spacing:.6em;color:#8b2020;margin-bottom:14px;animation:scanBlink 2.2s ease infinite;}
+@keyframes scanBlink{0%,100%{opacity:.2}45%,55%{opacity:1}}
+.io-title{font-family:'Rubik Dirt';font-size:clamp(68px,17vw,155px);line-height:.82;color:#e8a820;text-shadow:0 0 60px rgba(220,130,10,.5),0 0 120px rgba(180,80,5,.2),0 6px 0 rgba(0,0,0,.7);margin-bottom:4px;animation:fadeUp .8s .2s ease both;}
+.io-subtitle{font-family:'Bebas Neue';font-size:clamp(16px,4vw,38px);letter-spacing:.35em;color:rgba(220,210,180,.45);margin-bottom:28px;animation:fadeUp .8s .35s ease both;}
+.io-lore{max-width:520px;font-size:15px;line-height:1.9;color:rgba(200,185,150,.45);margin-bottom:14px;animation:fadeUp .8s .5s ease both;}
+.io-lore strong{color:#e8a820;}.io-lore em{color:#c04020;font-style:normal;}
+.io-quote{max-width:400px;font-family:'Share Tech Mono';font-size:11px;letter-spacing:.08em;color:rgba(200,185,150,.3);border-left:2px solid rgba(200,140,20,.25);padding:8px 16px;text-align:left;margin-bottom:36px;font-style:italic;line-height:1.6;animation:fadeUp .8s .6s ease both;}
+.io-quote em{color:rgba(200,185,150,.5);font-style:normal;}
+.io-enter{background:linear-gradient(135deg,#7a2808,#c03018);border:none;border-radius:2px;padding:20px 70px;font-family:'Bebas Neue';font-size:26px;letter-spacing:.2em;color:#fff;cursor:pointer;box-shadow:0 0 50px rgba(180,40,20,.5),0 4px 0 rgba(0,0,0,.5);transition:all .22s;animation:fadeUp .8s .72s ease both;border-top:1px solid rgba(255,120,80,.2);}
+.io-enter:hover{transform:translateY(-4px);box-shadow:0 0 80px rgba(220,80,20,.7),0 8px 0 rgba(0,0,0,.5);}
+.io-hint{margin-top:18px;font-family:'Share Tech Mono';font-size:9px;letter-spacing:.35em;color:rgba(200,185,150,.18);animation:fadeUp .8s 1s ease both;}
+#map-screen{display:none;position:relative;z-index:10;min-height:100vh;flex-direction:column;align-items:center;}
+#map-screen.visible{display:flex;}
+.map-topbar{width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px 36px;background:linear-gradient(to bottom,rgba(3,5,2,.98),transparent);border-bottom:1px solid rgba(200,150,40,.07);position:sticky;top:0;z-index:30;backdrop-filter:blur(12px);}
+.mtb-logo{font-family:'Rubik Dirt';font-size:22px;color:#e8a820;text-shadow:0 0 20px rgba(220,130,10,.35);}
+.mtb-logo span{display:block;font-family:'Share Tech Mono';font-size:8px;color:#a03020;letter-spacing:.4em;margin-top:-2px;}
+.mtb-badge{font-family:'Share Tech Mono';font-size:9px;letter-spacing:.15em;color:rgba(200,185,150,.22);border:1px solid rgba(255,255,255,.06);border-radius:2px;padding:5px 12px;}
+.lore-banner{width:100%;max-width:1000px;margin:48px auto 0;padding:0 28px;text-align:center;animation:fadeUp .8s .1s ease both;}
+.lb-eyebrow{font-family:'Share Tech Mono';font-size:9px;letter-spacing:.45em;color:#a03020;margin-bottom:10px;}
+.lb-title{font-family:'Bebas Neue';font-size:clamp(30px,6vw,64px);letter-spacing:.08em;color:#e8e0d0;margin-bottom:10px;line-height:1;}
+.lb-body{font-size:13px;line-height:1.8;color:rgba(200,185,150,.42);max-width:580px;margin:0 auto 8px;}
+.lb-body strong{color:#e8a820;}
+.sdg-quotes{width:100%;max-width:1000px;margin:0 auto;padding:14px 28px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:6px;}
+.sdg-quote-pill{font-family:'Share Tech Mono';font-size:9px;letter-spacing:.08em;color:rgba(200,185,150,.3);border:1px solid rgba(255,255,255,.05);border-radius:2px;padding:5px 12px;font-style:italic;}
+.lb-divider{width:60px;height:1px;background:linear-gradient(90deg,transparent,rgba(200,140,20,.35),transparent);margin:18px auto 44px;}
+.campaign-wrap{width:100%;max-width:960px;padding:0 24px 80px;display:flex;flex-direction:column;gap:0;align-items:center;position:relative;}
+.campaign-wrap::before{content:'';position:absolute;left:50%;top:0;bottom:80px;width:2px;transform:translateX(-50%);background:linear-gradient(to bottom,rgba(200,140,20,.5) 0%,rgba(200,140,20,.12) 45%,rgba(255,255,255,.03) 100%);z-index:0;}
+.lvl-row{width:100%;display:grid;grid-template-columns:1fr 100px 1fr;align-items:center;margin-bottom:64px;position:relative;z-index:1;animation:fadeUp .6s ease both;}
+.lvl-row:nth-child(2) .lvl-card{order:1;}.lvl-row:nth-child(2) .lvl-connector{order:2;}.lvl-row:nth-child(2) .lvl-empty{order:3;}
+.lvl-row:nth-child(3) .lvl-card{order:3;}.lvl-row:nth-child(3) .lvl-connector{order:2;}.lvl-row:nth-child(3) .lvl-empty{order:1;}
+.lvl-connector{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;}
+.lvl-dot{width:20px;height:20px;border-radius:50%;border:2px solid #b07820;background:#0d1408;box-shadow:0 0 18px rgba(200,140,20,.5);position:relative;z-index:2;flex-shrink:0;}
+.lvl-dot.active{background:#c08818;box-shadow:0 0 28px #c08818,0 0 55px rgba(200,140,20,.35);}
+.lvl-dot.locked{border-color:rgba(255,255,255,.1);box-shadow:none;background:rgba(255,255,255,.02);}
+.lvl-num-tag{font-family:'Share Tech Mono';font-size:7px;letter-spacing:.2em;color:rgba(200,185,150,.22);}
+.lvl-empty{}
+.lvl-card{background:rgba(10,13,8,.94);border:1.5px solid rgba(200,150,40,.1);border-radius:4px;padding:24px 26px;transition:all .25s;position:relative;overflow:visible;}
+.lvl-card.unlocked{border-color:rgba(200,150,40,.35);cursor:pointer;}
+.lvl-card.unlocked:hover{border-color:#c08818;transform:translateY(-4px);box-shadow:0 12px 40px rgba(200,130,10,.2);}
+.lvl-card.locked-card{opacity:.35;cursor:not-allowed;filter:grayscale(.5);}
+.lvl-card.unlocked::before,.lvl-card.unlocked::after{content:'';position:absolute;width:16px;height:16px;border-color:rgba(200,150,40,.4);border-style:solid;}
+.lvl-card.unlocked::before{top:-1px;left:-1px;border-width:2px 0 0 2px;}
+.lvl-card.unlocked::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0;}
+.lvl-status{font-family:'Share Tech Mono';font-size:8px;letter-spacing:.25em;margin-bottom:6px;}
+.lvl-status.active-status{color:#a03020;}.lvl-status.lock-status{color:rgba(255,255,255,.18);}
+.lvl-bignum{font-family:'Rubik Dirt';font-size:50px;color:rgba(200,140,20,.07);line-height:1;}
+.lvl-title{font-family:'Bebas Neue';font-size:clamp(20px,3vw,30px);letter-spacing:.08em;margin-bottom:5px;}
+.lvl-title.active-title{color:#e8a820;}.lvl-title.lock-title{color:rgba(255,255,255,.15);}
+.lvl-desc{font-size:12px;line-height:1.7;color:rgba(200,185,150,.42);margin-bottom:14px;}
+.sdg-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:16px;}
+.sdg-ht{position:relative;border-radius:2px;padding:5px 10px;font-family:'Share Tech Mono';font-size:8px;letter-spacing:.1em;cursor:help;transition:transform .15s;display:inline-block;}
+.sdg-ht:hover{transform:translateY(-3px);}
+.sdg-ht-tip{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:rgba(5,7,4,.98);border:1px solid rgba(200,140,20,.28);border-radius:3px;padding:11px 14px;width:220px;font-family:'Barlow';font-size:11px;line-height:1.65;color:rgba(200,185,150,.8);pointer-events:none;opacity:0;transition:opacity .18s;z-index:200;white-space:normal;text-align:left;box-shadow:0 8px 30px rgba(0,0,0,.7);}
+.sdg-ht-tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:rgba(200,140,20,.28);}
+.sdg-ht:hover .sdg-ht-tip{opacity:1;}
+.sdg-ht-tip strong{display:block;font-family:'Share Tech Mono';font-size:9px;color:#e8a820;margin-bottom:5px;letter-spacing:.1em;}
+.sdg-ht-tip em{display:block;margin-top:4px;font-size:10px;color:rgba(200,185,150,.35);font-style:normal;}
+.lvl-play{background:linear-gradient(135deg,#7a2808,#c03018);border:none;border-radius:2px;padding:11px 28px;font-family:'Bebas Neue';font-size:18px;letter-spacing:.12em;color:#fff;cursor:pointer;transition:all .2s;display:inline-block;}
+.lvl-play:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(180,40,20,.5);}
+.lvl-lock-btn{display:inline-flex;align-items:center;gap:7px;font-family:'Share Tech Mono';font-size:9px;letter-spacing:.12em;color:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.06);border-radius:2px;padding:8px 16px;background:none;cursor:not-allowed;}
+.sdg-mission-strip{width:100%;max-width:960px;margin:0 auto 0;padding:0 24px 60px;border-top:1px solid rgba(255,255,255,.04);padding-top:48px;}
+.sms-label{font-family:'Share Tech Mono';font-size:9px;letter-spacing:.35em;color:#a03020;margin-bottom:14px;}
+.sms-title{font-family:'Bebas Neue';font-size:clamp(22px,4vw,42px);letter-spacing:.07em;color:#e8e0d0;margin-bottom:8px;}
+.sms-quote{font-family:'Share Tech Mono';font-size:10px;letter-spacing:.06em;color:rgba(200,185,150,.32);font-style:italic;margin-bottom:20px;border-left:2px solid rgba(200,140,20,.18);padding-left:12px;}
+.sms-desc{font-size:13px;line-height:1.75;color:rgba(200,185,150,.38);margin-bottom:24px;max-width:560px;}
+.sms-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;}
+.sms-pill{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:2px;padding:7px 10px;font-family:'Share Tech Mono';font-size:8px;letter-spacing:.1em;color:rgba(200,185,150,.38);display:flex;align-items:center;gap:7px;}
+.sms-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.map-footer{width:100%;border-top:1px solid rgba(255,255,255,.04);padding:26px 36px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;}
+.mf-logo{font-family:'Rubik Dirt';font-size:16px;color:#e8a820;}
+.mf-copy{font-family:'Share Tech Mono';font-size:8px;color:rgba(200,185,150,.16);letter-spacing:.12em;}
+.mf-un{font-family:'Share Tech Mono';font-size:7px;color:rgba(200,185,150,.13);letter-spacing:.15em;text-align:right;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+
+/* ══════════════════════════════════════════
+   GAME SCREEN
+══════════════════════════════════════════ */
+#game-screen {
+  display:none;position:fixed;inset:0;z-index:200;background:var(--earth);
+}
+#game-screen button { cursor:pointer !important; }
+#game-screen #g-overlay { cursor:default; }
+canvas#gc { display:block;position:absolute;top:0;left:0;image-rendering:pixelated; }
+#game-ui { position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10; }
+
+#g-top { position:absolute;top:0;left:0;right:0;display:flex;align-items:flex-start;justify-content:space-between;padding:12px 14px;gap:10px; }
+.g-panel {
+  background:rgba(10,12,8,.82);backdrop-filter:blur(8px);
+  border:1px solid rgba(240,168,48,.1);border-radius:3px;
+  padding:8px 14px;
+}
+#infect-panel { min-width:min(280px,38vw); }
+.inf-label { font-family:'Share Tech Mono';font-size:9px;letter-spacing:.25em;color:rgba(212,200,168,.4);margin-bottom:5px;display:flex;justify-content:space-between; }
+#inf-track { height:10px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;position:relative; }
+#inf-fill {
+  height:100%;width:0%;border-radius:2px;
+  background:linear-gradient(90deg,#4ade80 0%,#84cc16 30%,#eab308 60%,#f97316 80%,#ef4444 95%,#7c3aed 100%);
+  background-size:280px 100%;transition:width .25s;
+}
+#inf-status { font-family:'Share Tech Mono';font-size:9px;color:var(--rust);margin-top:4px;min-height:12px; }
+#hp-bar-panel { min-width:min(280px,38vw);margin-top:5px; }
+.hp-label { font-family:'Share Tech Mono';font-size:9px;letter-spacing:.25em;color:rgba(212,200,168,.4);margin-bottom:5px;display:flex;justify-content:space-between; }
+#hp-track { height:10px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden; }
+#hp-fill { height:100%;width:100%;border-radius:2px;background:linear-gradient(90deg,#ef4444,#f97316,#fca5a5);transition:width .25s; }
+.m-task.active-task { color:#4ade80; animation:taskPulse 1s ease infinite; }
+@keyframes taskPulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+.stat-row { display:flex;align-items:center;gap:7px;margin-bottom:5px; }
+.stat-row:last-child { margin-bottom:0; }
+.s-icon { font-size:11px; }
+.s-name { font-family:'Share Tech Mono';font-size:8px;letter-spacing:.15em;color:rgba(212,200,168,.35);width:38px; }
+.s-track { flex:1;height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden; }
+.s-fill { height:100%;border-radius:2px;transition:width .4s; }
+.s-val { font-family:'Share Tech Mono';font-size:9px;color:var(--white);min-width:22px;text-align:right; }
+
+#mission-panel { max-width:220px; }
+.mission-head { font-family:'Share Tech Mono';font-size:9px;letter-spacing:.2em;color:rgba(212,200,168,.35);margin-bottom:8px; }
+.m-task { display:flex;align-items:flex-start;gap:6px;margin-bottom:5px;font-size:11px;font-weight:600;color:rgba(212,200,168,.6);line-height:1.3; }
+.m-task.done { color:rgba(212,200,168,.25);text-decoration:line-through; }
+.m-bullet { font-size:8px;margin-top:2px;flex-shrink:0; }
+.m-task.done .m-bullet { color:#4ade80; }
+.m-sdg { font-family:'Share Tech Mono';font-size:8px;border-radius:2px;padding:1px 5px;margin-left:2px;vertical-align:middle; }
+
+#score-panel { text-align:right; }
+.score-num { font-family:'Rubik Dirt';font-size:24px;color:var(--gold);line-height:1; }
+.score-label { font-family:'Share Tech Mono';font-size:8px;letter-spacing:.2em;color:rgba(212,200,168,.3); }
+
+#sdg-reveal {
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  background:rgba(10,12,8,.96);border:1.5px solid var(--amber);
+  border-radius:4px;padding:28px 36px;text-align:center;
+  max-width:360px;width:90%;opacity:0;pointer-events:none;transition:opacity .3s;
+  z-index:30;
+}
+#sdg-reveal.vis { opacity:1;pointer-events:all; }
+.sdg-reveal-num { font-family:'Rubik Dirt';font-size:48px;color:var(--gold);line-height:1;margin-bottom:4px; }
+.sdg-reveal-title { font-family:'Bebas Neue';font-size:28px;letter-spacing:.1em;color:var(--white);margin-bottom:8px; }
+.sdg-reveal-desc { font-size:13px;line-height:1.65;color:rgba(212,200,168,.6);margin-bottom:16px; }
+.sdg-reveal-stat { font-family:'Share Tech Mono';font-size:10px;color:var(--sage);letter-spacing:.15em;margin-bottom:20px; }
+#sdg-dismiss { background:var(--amber);border:none;border-radius:2px;padding:10px 28px;font-family:'Bebas Neue';font-size:16px;letter-spacing:.12em;color:#fff;cursor:pointer;pointer-events:all; }
+
+#g-toasts { position:absolute;bottom:120px;right:14px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;pointer-events:none; }
+.g-toast {
+  background:rgba(10,12,8,.9);backdrop-filter:blur(8px);border-radius:3px;
+  padding:8px 12px;color:var(--white);font-size:11px;font-weight:700;
+  border-left:2px solid;max-width:210px;
+  animation:tIn .3s ease,tOut .3s 2.4s ease forwards;
+}
+@keyframes tIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes tOut{from{opacity:1}to{opacity:0}}
+
+#g-controls { position:absolute;bottom:14px;left:14px;display:flex;gap:6px;flex-wrap:wrap; }
+.key { background:rgba(10,12,8,.6);border:1px solid rgba(255,255,255,.14);border-radius:2px;padding:3px 9px;font-family:'Share Tech Mono';font-size:9px;color:rgba(212,200,168,.45);letter-spacing:.08em; }
+
+#dpad { position:absolute;bottom:18px;right:18px;display:none;flex-direction:column;align-items:center;gap:4px;pointer-events:all; }
+.drow { display:flex;gap:4px; }
+.dbtn { width:50px;height:50px;border-radius:10px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.18);color:var(--white);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none; }
+.dbtn:active { background:rgba(255,255,255,.25); }
+@media(max-width:700px){#dpad{display:flex}#g-controls{display:none}}
+
+#g-overlay { position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:40;background:rgba(10,12,8,.92);pointer-events:all;cursor:default; }
+.g-screen { text-align:center;padding:36px 28px;max-width:520px;width:92%;background:rgba(26,22,8,.95);border:1px solid rgba(240,168,48,.15);border-radius:4px;pointer-events:all;cursor:default; }
+.g-title { font-family:'Rubik Dirt';font-size:clamp(32px,7vw,64px);margin-bottom:8px; }
+.g-sub { font-family:'Share Tech Mono';font-size:11px;letter-spacing:.25em;color:rgba(212,200,168,.35);margin-bottom:16px; }
+.g-body { font-size:14px;line-height:1.75;color:rgba(212,200,168,.6);margin-bottom:24px; }
+.stats-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:24px; }
+.stat-box { background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:3px;padding:10px; }
+.stat-box-num { font-family:'Rubik Dirt';font-size:22px;color:var(--gold); }
+.stat-box-label { font-family:'Share Tech Mono';font-size:8px;letter-spacing:.15em;color:rgba(212,200,168,.3); }
+.g-btn { background:linear-gradient(135deg,var(--amber),var(--rust));border:none;border-radius:2px;padding:14px 40px;font-family:'Bebas Neue';font-size:20px;letter-spacing:.1em;color:#fff;cursor:pointer !important;transition:all .2s;pointer-events:all; }
+.g-btn:hover { transform:translateY(-2px);box-shadow:0 6px 30px rgba(196,72,32,.5); }
+.g-btn.alt { background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--fog); }
+.g-btn.alt:hover { background:rgba(255,255,255,.1);color:var(--white); }
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div id="homepage">
+<div id="intro-overlay">
+  <div class="io-symbol">⚔</div>
+  <div class="io-scanline">YEAR 2047 · POST-COLLAPSE DAY 1,204</div>
+  <div class="io-title">RISE</div>
+  <div class="io-subtitle">Dead Season</div>
+  <p class="io-lore">The Resource Wars lasted eleven years.<br>Nations burned. Bioweapons leaked into the soil.<br><strong>The infection spread faster than the ceasefire.</strong><br><br>What's left is yours to rebuild — or lose forever.<br><em>Every decision teaches. Every failure costs.</em></p>
+  <div class="io-quote"><em>"The greatest weapon against a broken world is not a gun — it is a blueprint."</em><br>— UN SDG Framework, 2030 Agenda</div>
+  <button class="io-enter" onclick="showMapScreen()">▶ BEGIN CAMPAIGN</button>
+  <div class="io-hint">UN SUSTAINABLE DEVELOPMENT GOALS · EDUCATIONAL SURVIVAL GAME · 2047</div>
+</div>
+<div id="map-screen">
+  <div class="map-topbar">
+    <div class="mtb-logo">RISE <span>DEAD SEASON · 2047</span></div>
+    <div class="mtb-badge">POST-WAR CAMPAIGN · SEASON 1</div>
+  </div>
+  <div class="lore-banner">
+    <div class="lb-eyebrow">CAMPAIGN BRIEFING · CLASSIFIED</div>
+    <h1 class="lb-title">SELECT YOUR MISSION ZONE</h1>
+    <p class="lb-body">Five zones remain. Each carries a different crisis — and a different set of <strong>UN Sustainable Development Goals</strong> that only gameplay can teach. Zone 1 is accessible. The rest remain under quarantine.</p>
+  </div>
+  <div class="sdg-quotes">
+    <div class="sdg-quote-pill">"No one shall be left behind" — UN SDG Pledge</div>
+    <div class="sdg-quote-pill">"Hunger is a political failure, not a natural one"</div>
+    <div class="sdg-quote-pill">"Health is a human right, not a privilege"</div>
+    <div class="sdg-quote-pill">"Sustainable communities outlast any war"</div>
+    <div class="sdg-quote-pill">"Poverty is not destiny — it is policy"</div>
+  </div>
+  <div class="lb-divider"></div>
+  <div class="campaign-wrap">
+    <div class="lvl-row">
+      <div class="lvl-card unlocked" onclick="enterGame()">
+        <div class="lvl-status active-status">ZONE ACTIVE · UNLOCKED · PLAYABLE</div>
+        <div class="lvl-bignum">01</div>
+        <div class="lvl-title active-title">THE DEAD FARM</div>
+        <p class="lvl-desc">The farmlands outside the collapsed city were shelled for three seasons. The soil is poisoned. Former soldiers — mutated by leaked bioweapons — roam the fields. You must grow food, heal the sick, build shelter from war debris, and extract before the infection consumes you.</p>
+        <div class="sdg-tags">
+          <span class="sdg-ht" style="background:rgba(180,30,30,.1);border:1px solid rgba(220,50,50,.25);color:#f87171;">SDG 1 · No Poverty<span class="sdg-ht-tip"><strong>SDG 01 — NO POVERTY</strong>Smash war debris to collect 50 salvage. Resources are the foundation of recovery — without them, nothing else can be built or healed.<em>700M+ people live below $2.15/day globally.</em></span></span>
+          <span class="sdg-ht" style="background:rgba(180,130,20,.1);border:1px solid rgba(220,170,40,.25);color:#fcd34d;">SDG 2 · Zero Hunger<span class="sdg-ht-tip"><strong>SDG 02 — ZERO HUNGER</strong>Plant crops, defend them from zombie trampling, harvest 5 yields. Food reduces infection and heals the community.<em>735 million people face hunger every single day.</em></span></span>
+          <span class="sdg-ht" style="background:rgba(40,120,50,.1);border:1px solid rgba(60,160,70,.25);color:#86efac;">SDG 3 · Good Health<span class="sdg-ht-tip"><strong>SDG 03 — GOOD HEALTH</strong>Heal 3 sick survivors. Post-war zones lose more to disease than combat. Untreated illness spreads.<em>Half the world lacks essential health services.</em></span></span>
+          <span class="sdg-ht" style="background:rgba(180,110,20,.1);border:1px solid rgba(220,150,30,.25);color:#fdba74;">SDG 11 · Communities<span class="sdg-ht-tip"><strong>SDG 11 — SUSTAINABLE COMMUNITIES</strong>Build 3 huts from salvaged war debris. Each shelter reduces passive infection and houses healed survivors.<em>1.1 billion people live in inadequate housing.</em></span></span>
+          <span class="sdg-ht" style="background:rgba(160,150,30,.1);border:1px solid rgba(210,200,50,.2);color:#fde68a;">SDG 4 · Sharing<span class="sdg-ht-tip"><strong>SDG 04 — COMMUNITY SHARING</strong>Store 6 harvested crops in the Community Barn. Shared resources create resilience no individual effort can replicate.<em>Collective food systems reduce vulnerability 40%.</em></span></span>
+        </div>
+        <button class="lvl-play" onclick="enterGame();event.stopPropagation();">▶ ENTER ZONE 1</button>
+      </div>
+      <div class="lvl-connector"><div class="lvl-dot active"></div><div class="lvl-num-tag">ZONE 1</div></div>
+      <div class="lvl-empty"></div>
+    </div>
+    <div class="lvl-row">
+      <div class="lvl-empty"></div>
+      <div class="lvl-connector"><div class="lvl-dot locked"></div><div class="lvl-num-tag">ZONE 2</div></div>
+      <div class="lvl-card locked-card">
+        <div class="lvl-status lock-status">QUARANTINED · COMPLETE ZONE 1 TO UNLOCK</div>
+        <div class="lvl-bignum">02</div>
+        <div class="lvl-title lock-title">THE RUINED TOWN</div>
+        <p class="lvl-desc">Restore water systems, schools, and power to the collapsed town while defending its gates from a coordinated zombie siege.</p>
+        <div class="sdg-tags">
+          <span class="sdg-ht" style="background:rgba(0,80,160,.1);border:1px solid rgba(0,120,200,.2);color:rgba(125,210,252,.4);">SDG 4 · Education<span class="sdg-ht-tip"><strong>SDG 4</strong>Reopen the school. Knowledge is the first infrastructure.<em>244M children are out of school.</em></span></span>
+          <span class="sdg-ht" style="background:rgba(0,100,150,.1);border:1px solid rgba(0,140,190,.2);color:rgba(186,230,253,.4);">SDG 6 · Water<span class="sdg-ht-tip"><strong>SDG 6</strong>Repair the water plant. Contaminated water kills faster than zombies.<em>2B lack safe drinking water.</em></span></span>
+          <span class="sdg-ht" style="background:rgba(180,160,0,.1);border:1px solid rgba(220,200,0,.2);color:rgba(253,225,130,.4);">SDG 7 · Energy<span class="sdg-ht-tip"><strong>SDG 7</strong>Restore solar arrays to power medical facilities.<em>675M have no electricity.</em></span></span>
+        </div>
+        <button class="lvl-lock-btn">LOCKED</button>
+      </div>
+    </div>
+    <div class="lvl-row">
+      <div class="lvl-card locked-card">
+        <div class="lvl-status lock-status">QUARANTINED · COMPLETE ZONE 2 TO UNLOCK</div>
+        <div class="lvl-bignum">03</div>
+        <div class="lvl-title lock-title">THE FRACTURED NATION</div>
+        <p class="lvl-desc">Unite rival survivor factions, rebuild governance, and face a zombie general commanding a military-grade siege.</p>
+        <div class="sdg-tags">
+          <span class="sdg-ht" style="background:rgba(140,0,80,.1);border:1px solid rgba(180,0,110,.2);color:rgba(249,168,212,.4);">SDG 10 · Inequality<span class="sdg-ht-tip"><strong>SDG 10</strong>Bridge the gap between fortified elite zones and devastated outer districts.<em>Inequality widened in 70% of countries.</em></span></span>
+          <span class="sdg-ht" style="background:rgba(0,120,80,.1);border:1px solid rgba(0,160,100,.2);color:rgba(110,231,183,.4);">SDG 16 · Justice<span class="sdg-ht-tip"><strong>SDG 16</strong>Build institutions that outlast the crisis. Justice is foundation, not reward.<em>2B people live in conflict zones.</em></span></span>
+          <span class="sdg-ht" style="background:rgba(10,80,160,.1);border:1px solid rgba(20,120,200,.2);color:rgba(147,197,253,.4);">SDG 17 · Partnerships<span class="sdg-ht-tip"><strong>SDG 17</strong>Form alliances with aid convoys. No one rebuilds alone.<em>Global aid fell 15% in 3 years.</em></span></span>
+        </div>
+        <button class="lvl-lock-btn">LOCKED</button>
+      </div>
+      <div class="lvl-connector"><div class="lvl-dot locked"></div><div class="lvl-num-tag">ZONE 3</div></div>
+      <div class="lvl-empty"></div>
+    </div>
+  </div>
+  <div class="sdg-mission-strip">
+    <div class="sms-label">THE MISSION BEHIND THE GAME</div>
+    <div class="sms-title">17 Goals. One Dying Planet. Your Decisions.</div>
+    <div class="sms-quote">"The SDGs are not a wishlist — they are a survival plan for civilisation."</div>
+    <p class="sms-desc">RISE maps every mechanic to a UN Sustainable Development Goal. You experience their failure when crops die and health collapses — and their triumph when a shelter saves a life.</p>
+    <div class="sms-grid">
+      <div class="sms-pill"><div class="sms-dot" style="background:#e5243b"></div>SDG 1 · No Poverty</div>
+      <div class="sms-pill"><div class="sms-dot" style="background:#dda63a"></div>SDG 2 · Zero Hunger</div>
+      <div class="sms-pill"><div class="sms-dot" style="background:#4c9f38"></div>SDG 3 · Good Health</div>
+      <div class="sms-pill"><div class="sms-dot" style="background:#c5192d"></div>SDG 4 · Education</div>
+      <div class="sms-pill"><div class="sms-dot" style="background:#26bde2"></div>SDG 6 · Clean Water</div>
+      <div class="sms-pill"><div class="sms-dot" style="background:#fcc30b"></div>SDG 7 · Clean Energy</div>
+      <div class="sms-pill"><div class="sms-dot" style="background:#fd9d24"></div>SDG 11 · Communities</div>
+      <div class="sms-pill"><div class="sms-dot" style="background:#3f7e44"></div>SDG 15 · Life on Land</div>
+      <div class="sms-pill"><div class="sms-dot" style="background:#00689d"></div>SDG 16 · Peace & Justice</div>
+      <div class="sms-pill"><div class="sms-dot" style="background:#dd1367"></div>SDG 10 · Inequality</div>
+      <div class="sms-pill"><div class="sms-dot" style="background:#a21942"></div>SDG 8 · Decent Work</div>
+      <div class="sms-pill"><div class="sms-dot" style="background:#19486a"></div>SDG 17 · Partnerships</div>
+    </div>
+  </div>
+  <div class="map-footer">
+    <div class="mf-logo">RISE</div>
+    <div class="mf-copy">2047 RISE · DEAD SEASON · EDUCATIONAL SDG SURVIVAL GAME</div>
+    <div class="mf-un">ALIGNED WITH UN SUSTAINABLE<br>DEVELOPMENT GOALS 2030</div>
+  </div>
+</div>
+</div>
+<div id="game-screen">
+  <canvas id="gc"></canvas>
+  <div id="game-ui">
+    <div id="g-top">
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <div class="g-panel" id="infect-panel">
+          <div class="inf-label"><span>☣ POISON AIR</span><span id="inf-pct">0%</span></div>
+          <div id="inf-track"><div id="inf-fill"></div></div>
+          <div id="inf-status"></div>
+        </div>
+        <div class="g-panel" id="hp-bar-panel">
+          <div class="hp-label"><span>❤ HEALTH</span><span id="v-hp">100</span></div>
+          <div id="hp-track"><div id="hp-fill"></div></div>
+        </div>
+      </div>
+      <div class="g-panel">
+        <div class="stat-row"><span class="s-icon">🌱</span><span class="s-name">CROPS</span><div class="s-track"><div id="b-crops" class="s-fill" style="background:linear-gradient(90deg,#4ade80,#86efac);width:0%"></div></div><span id="v-crops" class="s-val">0</span></div>
+        <div class="stat-row"><span class="s-icon">🏪</span><span class="s-name">STORED</span><div class="s-track"><div id="b-store" class="s-fill" style="background:linear-gradient(90deg,#fcd34d,#fde68a);width:0%"></div></div><span id="v-store" class="s-val">0/5</span></div>
+        <div class="stat-row"><span class="s-icon">💰</span><span class="s-name">SALVAGE</span><div class="s-track"><div id="b-sal" class="s-fill" style="background:linear-gradient(90deg,#d4820a,#fcd34d);width:0%"></div></div><span id="v-sal" class="s-val">0</span></div>
+        <div class="stat-row"><span class="s-icon">🏠</span><span class="s-name">SHELTER</span><div class="s-track"><div id="b-shel" class="s-fill" style="background:linear-gradient(90deg,#f97316,#fdba74);width:0%"></div></div><span id="v-shel" class="s-val">0/3</span></div>
+      </div>
+      <div class="g-panel" id="mission-panel">
+        <div class="mission-head">☣ LEVEL 1 OBJECTIVES</div>
+        <div class="m-task" id="mt1"><span class="m-bullet">○</span><span>Harvest 5 crops <span class="m-sdg" style="background:rgba(221,166,58,.2);color:#fcd34d;">SDG2</span></span></div>
+        <div class="m-task" id="mt6"><span class="m-bullet">○</span><span>Store 5 food in barn [E] <span class="m-sdg" style="background:rgba(252,211,77,.2);color:#fde68a;">SDG4</span></span></div>
+        <div class="m-task" id="mt2"><span class="m-bullet">○</span><span>Heal 3 survivors <span class="m-sdg" style="background:rgba(76,159,56,.2);color:#86efac;">SDG3</span></span></div>
+        <div class="m-task" id="mt3"><span class="m-bullet">○</span><span>Build 3 shelters <span class="m-sdg" style="background:rgba(253,157,36,.2);color:#fdba74;">SDG11</span></span></div>
+        <div class="m-task" id="mt4"><span class="m-bullet">○</span><span>Earn 50 salvage <span class="m-sdg" style="background:rgba(229,36,59,.2);color:#f87171;">SDG1</span></span></div>
+        <div class="m-task" id="mt5"><span class="m-bullet">○</span><span>Reach extraction</span></div>
+      </div>
+      <div class="g-panel" id="score-panel">
+        <div class="score-num" id="v-score">0</div>
+        <div class="score-label">SCORE</div>
+        <div style="margin-top:8px;font-family:'Share Tech Mono';font-size:9px;color:rgba(212,200,168,.35);">💀 KILLS: <span id="v-kills">0</span></div>
+      </div>
+    </div>
+    <div id="sdg-reveal">
+      <div id="sr-icon" style="font-size:36px;margin-bottom:6px">🌱</div>
+      <div class="sdg-reveal-num" id="sr-num">SDG 2</div>
+      <div class="sdg-reveal-title" id="sr-title">ZERO HUNGER</div>
+      <div class="sdg-reveal-desc" id="sr-desc">By 2030, end hunger and ensure access to safe, nutritious food for all people.</div>
+      <div class="sdg-reveal-stat" id="sr-stat">📊 815 million people face hunger globally</div>
+      <button id="sdg-dismiss" onclick="dismissSDG()">CONTINUE MISSION →</button>
+    </div>
+    <div id="g-toasts"></div>
+    <div id="g-controls">
+      <div class="key">A/D — Move</div>
+      <div class="key">W/Space — Jump</div>
+      <div class="key">F — Smash / Plant / Heal / Build</div>
+      <div class="key">E — Store food at 🏪 Barn (SDG 4)</div>
+    </div>
+    <div id="dpad">
+      <div class="drow"><div class="dbtn" ontouchstart="inp.jump=true" ontouchend="inp.jump=false">↑</div></div>
+      <div class="drow">
+        <div class="dbtn" ontouchstart="inp.left=true" ontouchend="inp.left=false">◀</div>
+        <div class="dbtn" ontouchstart="inp.attack=true" ontouchend="inp.attack=false">⚡</div>
+        <div class="dbtn" ontouchstart="inp.right=true" ontouchend="inp.right=false">▶</div>
+      </div>
+    </div>
+    <div id="g-overlay" style="display:none;align-items:center;justify-content:center;">
+      <div class="g-screen" id="g-end-screen"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// HOMEPAGE BACKGROUND CANVAS
+// ═══════════════════════════════════════════════════════════════════
+(function(){
+  const c = document.getElementById('bg-canvas');
+  const x = c.getContext('2d');
+  let W,H,frame=0;
+  function rs(){ W=c.width=window.innerWidth; H=c.height=window.innerHeight; }
+  rs(); window.addEventListener('resize',rs);
+  const spores = Array.from({length:60},(_,i)=>({
+    x:Math.random()*2000, y:Math.random()*1200,
+    vx:(Math.random()-.5)*.3, vy:-(Math.random()*.4+.1),
+    size:Math.random()*3+1, opacity:Math.random()*.3+.05,
+    col:Math.random()>.5?'80,160,40':'200,160,40'
+  }));
+  function tick(){
+    requestAnimationFrame(tick); frame++;
+    x.clearRect(0,0,W,H);
+    for(let i=0;i<3;i++){
+      const fy = H*(0.5+i*.15);
+      const g = x.createLinearGradient(0,fy-60,0,fy+60);
+      g.addColorStop(0,'rgba(0,0,0,0)');
+      g.addColorStop(.5,`rgba(40,60,20,${0.04+i*.02})`);
+      g.addColorStop(1,'rgba(0,0,0,0)');
+      x.fillStyle=g; x.fillRect(0,fy-60,W,120);
+    }
+    for(const s of spores){
+      s.x += s.vx + Math.sin(frame*.01+s.y*.01)*.2;
+      s.y += s.vy;
+      if(s.y < -10) s.y=H+10;
+      if(s.x<0) s.x=W; if(s.x>W) s.x=0;
+      x.beginPath();
+      x.arc(s.x%W, s.y, s.size, 0, Math.PI*2);
+      x.fillStyle=`rgba(${s.col},${s.opacity})`;
+      x.fill();
+    }
+    const hg = x.createLinearGradient(0,H*.5,0,H);
+    hg.addColorStop(0,'rgba(0,0,0,0)');
+    hg.addColorStop(.6,'rgba(30,22,5,.4)');
+    hg.addColorStop(1,'rgba(10,8,2,.7)');
+    x.fillStyle=hg; x.fillRect(0,H*.5,W,H*.5);
+    x.globalAlpha=0.06;
+    x.fillStyle='#1a2010';
+    for(let i=0;i<8;i++){
+      const bx=((i*280+frame*.05)%(W+300))-100;
+      const bh=80+i*25;
+      x.fillRect(bx,H*.55-bh,70+i*10,bh);
+    }
+    x.globalAlpha=1;
+  }
+  tick();
+})();
+
+// ═══════════════════════════════════════════════════════════════════
+// SHOW MAP SCREEN
+// ═══════════════════════════════════════════════════════════════════
+function showMapScreen(){
+  const intro = document.getElementById('intro-overlay');
+  intro.classList.add('hidden');
+  setTimeout(()=>{
+    intro.style.display='none';
+    const ms = document.getElementById('map-screen');
+    ms.classList.add('visible');
+  }, 1500);
+}
+window.showMapScreen = showMapScreen;
+
+function enterGame(){
+  document.getElementById('homepage').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  initGame();
+}
+window.enterGame = enterGame;
+
+// ═══════════════════════════════════════════════════════════════════
+// GAME ENGINE
+// ═══════════════════════════════════════════════════════════════════
+const gc = document.getElementById('gc');
+const ctx = gc.getContext('2d');
+let W, H;
+function resizeGC(){ W=gc.width=window.innerWidth; H=gc.height=window.innerHeight; }
+window.addEventListener('resize', resizeGC);
+
+const GRAV=0.52, JSPD=-13, MSPD=4.59;
+const WORLD_W=3800;
+const GF=0.735;
+const INFECT_RATE=0.0007;
+const INFECT_MASK=0.00018;
+const BARN_H = 0; // FIX: define barnH (offset above ground, barn label uses this)
+
+const G={
+  running:false, frame:0, camX:0,
+  infection:0, isZombie:false, zombieTimer:0, maskTime:0,
+  hp:100, score:0, kills:0,
+  crops:0, cropsTarget:5,
+  survivors:0, survivorsTarget:3,
+  shelters:0, sheltersTarget:3,
+  salvage:0, salvageTarget:50,
+  foodInventory:0,
+  storedFood:0,
+  storageTarget:6,
+  attackCooldown:0, attackAnim:0, screenShake:0,
+  win:false, lose:false,
+  sdgQueue:[],
+  builtShelters:new Set(),
+  sdg4Shown:false,
+  cureHerbSpawned:false,
+  extractionUnlocked:false,
+  waveSpawned1:false,
+  waveSpawned2:false,
+};
+
+// FIX: Properly initialize all input flags
+const inp={left:false,right:false,jump:false,attack:false,attackPressed:false,store:false,storePressed:false,storeUsed:false};
+
+const P={x:100,y:0,vx:0,vy:0,w:36,h:66,onGround:false,facing:1,walkF:0,walkT:0,jumping:false,walking:false};
+
+const platforms=[
+  {x:300,yF:.63,w:120},{x:550,yF:.57,w:100},{x:780,yF:.52,w:110},
+  {x:1050,yF:.58,w:100},{x:1320,yF:.53,w:110},{x:1600,yF:.60,w:130},
+  {x:1880,yF:.55,w:110},{x:2150,yF:.62,w:120},{x:2450,yF:.57,w:100},
+  {x:2750,yF:.52,w:130},{x:3050,yF:.58,w:110},{x:3300,yF:.64,w:140},
+];
+
+const debris=[
+  {id:0,x:260,type:'crate',hp:2,dead:false},
+  {id:1,x:500,type:'barrel',hp:1,dead:false},
+  {id:2,x:720,type:'tank_chunk',hp:3,dead:false},
+  {id:3,x:970,type:'sandbags',hp:2,dead:false},
+  {id:4,x:1200,type:'wire_nest',hp:2,dead:false},
+  {id:5,x:1480,type:'crater_pile',hp:3,dead:false},
+  {id:6,x:1750,type:'shell',hp:1,dead:false},
+  {id:7,x:2050,type:'fence_wreck',hp:2,dead:false},
+  {id:8,x:2350,type:'crate',hp:2,dead:false},
+  {id:9,x:2700,type:'barrel',hp:1,dead:false},
+];
+
+const PATCH_SP=52;
+const farmPlots=[
+  {id:0,patch:0,x:470,            state:'soil',growTimer:0,growTime:420,harvestCount:0},
+  {id:1,patch:0,x:470+PATCH_SP,  state:'soil',growTimer:0,growTime:380,harvestCount:0},
+  {id:2,patch:0,x:470+PATCH_SP*2,state:'soil',growTimer:0,growTime:440,harvestCount:0},
+  {id:3,patch:1,x:1530,           state:'soil',growTimer:0,growTime:400,harvestCount:0},
+  {id:4,patch:1,x:1530+PATCH_SP, state:'soil',growTimer:0,growTime:360,harvestCount:0},
+  {id:5,patch:1,x:1530+PATCH_SP*2,state:'soil',growTimer:0,growTime:420,harvestCount:0},
+  {id:6,patch:2,x:2680,           state:'soil',growTimer:0,growTime:380,harvestCount:0},
+  {id:7,patch:2,x:2680+PATCH_SP, state:'soil',growTimer:0,growTime:420,harvestCount:0},
+  {id:8,patch:2,x:2680+PATCH_SP*2,state:'soil',growTimer:0,growTime:400,harvestCount:0},
+];
+
+const survivors=[
+  {id:0,x:450,y:0,healed:false,hp:1,stun:0,walkingToShelter:false,atShelter:false},
+  {id:1,x:1100,y:0,healed:false,hp:1,stun:0,walkingToShelter:false,atShelter:false},
+  {id:2,x:1800,y:0,healed:false,hp:1,stun:0,walkingToShelter:false,atShelter:false},
+  {id:3,x:2600,y:0,healed:false,hp:1,stun:0,walkingToShelter:false,atShelter:false},
+];
+
+const shelterSites=[
+  {id:0,x:750,built:false,lumber:0,lumberNeeded:5,buildAnim:0},
+  {id:1,x:1420,built:false,lumber:0,lumberNeeded:5,buildAnim:0},
+  {id:2,x:2500,built:false,lumber:0,lumberNeeded:5,buildAnim:0},
+];
+
+const zombies=[
+  {id:0,x:600,y:0,vx:-1.5,hp:4,maxHp:4,dead:false,stun:0,walkF:0,type:'normal'},
+  {id:1,x:1050,y:0,vx:1.6,hp:4,maxHp:4,dead:false,stun:0,walkF:0,type:'normal'},
+  {id:2,x:1500,y:0,vx:-1.6,hp:5,maxHp:5,dead:false,stun:0,walkF:0,type:'normal'},
+  {id:3,x:2100,y:0,vx:1.7,hp:4,maxHp:4,dead:false,stun:0,walkF:0,type:'normal'},
+  {id:4,x:2700,y:0,vx:-1.8,hp:5,maxHp:5,dead:false,stun:0,walkF:0,type:'normal'},
+  {id:5,x:3200,y:0,vx:1.6,hp:4,maxHp:4,dead:false,stun:0,walkF:0,type:'normal'},
+];
+
+const plantInvaders=[
+  {id:0,x:900,y:0,vx:-1.1,hp:3,maxHp:3,dead:false,stun:0,walkF:0,targetPatch:0,debrisCarried:true,attackTimer:0,rage:false},
+  {id:1,x:2300,y:0,vx:1.0,hp:3,maxHp:3,dead:false,stun:0,walkF:0,targetPatch:2,debrisCarried:true,attackTimer:0,rage:false},
+];
+
+const pickups=[
+  {id:0,x:380,type:'mask',collected:false},
+  {id:1,x:830,type:'medkit',collected:false},
+  {id:2,x:1250,type:'mask',collected:false},
+  {id:3,x:1650,type:'salvage',v:15,collected:false},
+  {id:4,x:2000,type:'medkit',collected:false},
+  {id:5,x:2400,type:'mask',collected:false},
+  {id:6,x:2800,type:'salvage',v:20,collected:false},
+  {id:7,x:380,type:'lumber',collected:false},
+  {id:8,x:1000,type:'lumber',collected:false},
+  {id:9,x:1550,type:'lumber',collected:false},
+  {id:10,x:2050,type:'lumber',collected:false},
+  {id:11,x:2600,type:'lumber',collected:false},
+  {id:12,x:3100,type:'lumber',collected:false},
+  {id:13,x:520,type:'herb',collected:false},
+  {id:14,x:1610,type:'herb',collected:false},
+  {id:15,x:2750,type:'herb',collected:false},
+];
+
+// FIX: Added all required NPC fields from the start to avoid undefined property errors
+const NPC={
+  x:180, y:0, vx:0.3, walkF:0, walkT:0,
+  facing:1,
+  insideShelter:false,
+  shelterIdx:0,
+  returnedFromShelter:false,
+  enteringShown:false,
+  targetX:undefined,
+  // Speech bubble state — auto-triggered, no player interaction needed
+  currentLine:null,
+  lineTimer:0,
+  lineDuration:300,
+  lines:[
+    {id:0,trigger:'start',    text:"Survivor! These lands were rich before the Resource Wars. Poison fills the air — plant what you can. Hunger kills faster than bullets.", spoken:false},
+    {id:1,trigger:'plant',    text:"Good. Food grows slowly, like trust. Eleven years of war destroyed in days what farmers built over generations.", spoken:false},
+    {id:2,trigger:'harvest',  text:"A harvest! In the final war year, millions starved not from shortage — but because supply chains were bombed. Now we rebuild them.", spoken:false},
+    {id:3,trigger:'zombie',   text:"More fall. Remember — they were farmers, teachers, healers once. The bioweapon made them this. War always pays in civilians.", spoken:false},
+    {id:4,trigger:'shelter',  text:"Shelter is dignity. When artillery hit this region, 400,000 people slept in open fields. Every roof you raise declares: the war is losing.", spoken:false},
+    {id:5,trigger:'heal',     text:"Healing one person heals the whole community. Post-war zones lose more people to disease than to combat. Health is not a privilege — it is survival.", spoken:false},
+    {id:6,trigger:'barn',     text:"When food is shared, poverty shrinks. Hoarding by war commanders left whole villages empty-handed. This barn changes that.", spoken:false},
+    {id:7,trigger:'neardone', text:"You have done what no soldier could — you built instead of destroyed. The extraction point is near. We will rebuild the ruined town next.", spoken:false},
+    {id:8,trigger:'enterShelter',text:"I will rest inside — but I will return when the last threat is gone. Keep building.", spoken:false},
+  ],
+};
+
+const SDG_DEFS={
+  2:{icon:'🌱',num:'SDG 2',title:'ZERO HUNGER',desc:'End hunger, achieve food security and improved nutrition, and promote sustainable agriculture. By 2050 we need 70% more food to feed the world.',stat:'📊 690 million people go hungry every day'},
+  3:{icon:'💊',num:'SDG 3',title:'GOOD HEALTH & WELL-BEING',desc:'Ensure healthy lives and promote well-being for all at all ages. Health systems collapse fastest in post-conflict zones.',stat:'📊 Half the world lacks access to essential health services'},
+  4:{icon:'🏪',num:'SDG 4',title:'QUALITY EDUCATION & COMMUNITY',desc:'Ensure inclusive and equitable quality education. A community food store is the first school — it teaches sharing, planning, and collective survival.',stat:'📊 300 million children go to school hungry, unable to learn'},
+  11:{icon:'🏚️',num:'SDG 11',title:'SUSTAINABLE COMMUNITIES',desc:'Make cities and human settlements inclusive, safe, resilient and sustainable. 1.6 billion people live in inadequate housing.',stat:'📊 3 billion people will need new or upgraded homes by 2030'},
+  1:{icon:'💰',num:'SDG 1',title:'NO POVERTY',desc:'End poverty in all its forms everywhere. Poverty is not just lack of money — it is lack of power, resources, and security.',stat:'📊 700 million people live on less than $2.15 a day'},
+};
+
+const barn = { x:2100, w:90, built:false };
+
+const floats=[], particles=[];
+function spawnFloat(x,y,txt,col){floats.push({x,y,txt,col,life:1,vy:-2});}
+function spawnParticles(x,y,col,n=8,spd=3){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2;
+    particles.push({x,y,vx:Math.cos(a)*spd*(0.5+Math.random()),vy:Math.sin(a)*spd*(0.5+Math.random())-2,life:1,col,size:3+Math.random()*4});
+  }
+}
+function updateFloats(){for(let i=floats.length-1;i>=0;i--){floats[i].y+=floats[i].vy;floats[i].life-=0.025;if(floats[i].life<=0)floats.splice(i,1);}}
+function updateParticles(){for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.2;p.life-=0.03;if(p.life<=0)particles.splice(i,1);}}
+
+function gToast(txt,col='#4ade80'){
+  const c=document.getElementById('g-toasts');
+  const el=document.createElement('div');
+  el.className='g-toast';el.style.borderLeftColor=col;el.textContent=txt;
+  c.appendChild(el);setTimeout(()=>el.remove(),2800);
+}
+
+let sdgPaused=false;
+function showSDG(id){
+  const d=SDG_DEFS[id]; if(!d) return;
+  document.getElementById('sr-icon').textContent=d.icon;
+  document.getElementById('sr-num').textContent=d.num;
+  document.getElementById('sr-title').textContent=d.title;
+  document.getElementById('sr-desc').textContent=d.desc;
+  document.getElementById('sr-stat').textContent=d.stat;
+  document.getElementById('sdg-reveal').classList.add('vis');
+  sdgPaused=true;
+}
+function dismissSDG(){
+  document.getElementById('sdg-reveal').classList.remove('vis');
+  sdgPaused=false;
+  if(G.sdgQueue.length>0) setTimeout(()=>showSDG(G.sdgQueue.shift()),600);
+}
+window.dismissSDG=dismissSDG;
+
+// FIX: Track previous values properly — initialize before use
+let lastCrops=0, lastSurv=0, lastShel=0, lastSal=0, lastStore=0;
+
+function updateHUD(){
+  const pct=Math.floor(G.infection*100);
+  document.getElementById('inf-fill').style.width=pct+'%';
+  document.getElementById('inf-pct').textContent=pct+'%';
+  const st=document.getElementById('inf-status');
+  if(G.isZombie) st.textContent='🧟 ZOMBIE — TRANSFORMING...';
+  else if(G.infection>0.7) st.textContent='⚠ CRITICAL — FIND GAS MASK';
+  else if(G.maskTime>0) st.textContent=`😷 MASK ACTIVE — ${Math.ceil(G.maskTime/60)}s`;
+  else st.textContent='';
+
+  document.getElementById('hp-fill').style.width=G.hp+'%';
+  document.getElementById('v-hp').textContent=Math.ceil(G.hp);
+  const cropPct=Math.min(100,G.crops/G.cropsTarget*100);
+  document.getElementById('b-crops').style.width=cropPct+'%';
+  document.getElementById('v-crops').textContent=`${G.crops}${G.foodInventory>0?' ('+G.foodInventory+' held)':''}`;
+  const salPct=Math.min(100,G.salvage/G.salvageTarget*100);
+  document.getElementById('b-sal').style.width=salPct+'%';
+  document.getElementById('v-sal').textContent=G.salvage;
+  const shelPct=G.shelters/G.sheltersTarget*100;
+  document.getElementById('b-shel').style.width=shelPct+'%';
+  document.getElementById('v-shel').textContent=`${G.shelters}/3`;
+  const storePct=Math.min(100,G.storedFood/G.storageTarget*100);
+  document.getElementById('b-store').style.width=storePct+'%';
+  document.getElementById('v-store').textContent=`${G.storedFood}/${G.storageTarget}`;
+  document.getElementById('v-score').textContent=G.score;
+  document.getElementById('v-kills').textContent=G.kills;
+
+  if(G.crops>=G.cropsTarget){document.getElementById('mt1').classList.add('done');document.getElementById('mt1').querySelector('.m-bullet').textContent='●';}
+  if(G.survivors>=G.survivorsTarget){document.getElementById('mt2').classList.add('done');document.getElementById('mt2').querySelector('.m-bullet').textContent='●';}
+  if(G.shelters>=G.sheltersTarget){document.getElementById('mt3').classList.add('done');document.getElementById('mt3').querySelector('.m-bullet').textContent='●';}
+  if(G.salvage>=G.salvageTarget){document.getElementById('mt4').classList.add('done');document.getElementById('mt4').querySelector('.m-bullet').textContent='●';}
+  if(G.storedFood>=G.storageTarget){document.getElementById('mt6').classList.add('done');document.getElementById('mt6').querySelector('.m-bullet').textContent='●';}
+
+  // Trigger SDG reveals on first completion milestones
+  if(G.crops>=G.cropsTarget && lastCrops<G.cropsTarget){G.sdgQueue.push(2);G.infection=Math.max(0,G.infection-.10);if(!sdgPaused)setTimeout(()=>showSDG(G.sdgQueue.shift()),300);}
+  if(G.survivors>=G.survivorsTarget && lastSurv<G.survivorsTarget){G.sdgQueue.push(3);G.infection=Math.max(0,G.infection-.10);if(!sdgPaused)setTimeout(()=>showSDG(G.sdgQueue.shift()),300);}
+  if(G.shelters>=G.sheltersTarget && lastShel<G.sheltersTarget){G.sdgQueue.push(11);G.infection=Math.max(0,G.infection-.10);if(!sdgPaused)setTimeout(()=>showSDG(G.sdgQueue.shift()),300);}
+  if(G.salvage>=G.salvageTarget && lastSal<G.salvageTarget){G.sdgQueue.push(1);G.infection=Math.max(0,G.infection-.10);if(!sdgPaused)setTimeout(()=>showSDG(G.sdgQueue.shift()),300);}
+  if(G.storedFood>=G.storageTarget && lastStore<G.storageTarget){G.sdgQueue.push(4);G.infection=Math.max(0,G.infection-.10);if(!sdgPaused)setTimeout(()=>showSDG(G.sdgQueue.shift()),300);}
+
+  lastCrops=G.crops; lastSurv=G.survivors; lastShel=G.shelters; lastSal=G.salvage; lastStore=G.storedFood;
+}
+
+function physics(){
+  if(sdgPaused) return;
+  const ground=GF*H;
+  const spd=MSPD; // no speed change when zombie — keeps gameplay fair
+  P.walking=false;
+  if(inp.left){P.vx=-spd;P.facing=-1;P.walking=true;}
+  else if(inp.right){P.vx=spd;P.facing=1;P.walking=true;}
+  else P.vx*=0.65;
+  if(inp.jump&&P.onGround){P.vy=JSPD;P.onGround=false;P.jumping=true;inp.jump=false;}
+  P.vy=Math.min(P.vy+GRAV,20); P.x+=P.vx; P.y+=P.vy;
+  P.onGround=false;
+  if(P.y+P.h>=ground){P.y=ground-P.h;P.vy=0;P.onGround=true;P.jumping=false;}
+  for(const pl of platforms){
+    const py=pl.yF*H;
+    if(P.x+P.w>pl.x&&P.x<pl.x+pl.w&&P.y+P.h>py&&P.y+P.h<py+16&&P.vy>=0){P.y=py-P.h;P.vy=0;P.onGround=true;P.jumping=false;}
+  }
+  P.x=Math.max(20,Math.min(WORLD_W-P.w,P.x));
+  if(P.walking&&P.onGround){P.walkT++;if(P.walkT>5){P.walkF=(P.walkF+1)%6;P.walkT=0;}}else P.walkT=0;
+  const tx=P.x-W*0.35; G.camX+=(tx-G.camX)*0.09;
+  G.camX=Math.max(0,Math.min(WORLD_W-W,G.camX));
+}
+
+function tryAttack(){
+  if(G.attackCooldown>0||sdgPaused) return;
+  G.attackCooldown=22; G.attackAnim=12; G.screenShake=5;
+  const cx=P.x+P.w/2+P.facing*32;
+  const REACH_DEBRIS=55, REACH_ZOMBIE=65, REACH_FARM=38, REACH_SURVIVOR=45, REACH_SHELTER=42;
+
+  for(const d of debris){
+    if(d.dead) continue;
+    if(Math.abs(d.x-cx)<REACH_DEBRIS){
+      d.hp--;
+      spawnParticles(d.x-G.camX,GF*H-30,'#a16207',10,4);
+      spawnFloat(d.x-G.camX,GF*H-60,d.hp<=0?'SMASHED! 💥':'HIT!','#fcd34d');
+      if(d.hp<=0){
+        d.dead=true; G.salvage+=5; G.score+=100;
+        spawnParticles(d.x-G.camX,GF*H-30,'#d4820a',16,5);
+        gToast('💰 Salvage +5 (Debris cleared!) — SDG 1','#d4820a');
+      }
+    }
+  }
+  for(const z of zombies){
+    if(z.dead) continue;
+    if(Math.abs((z.x+16)-cx)<REACH_ZOMBIE){
+      z.hp--; z.stun=28; z.vx=P.facing*5;
+      spawnParticles(z.x-G.camX,z.y-30,'#7c3aed',8,5);
+      spawnFloat(z.x-G.camX,z.y-60,z.hp<=0?'☠ ZOMBIE DOWN!':'HIT!','#a78bfa');
+      if(z.hp<=0){z.dead=true;G.kills++;G.salvage+=3;G.score+=200;spawnParticles(z.x-G.camX,z.y-20,'#ef4444',20,6);gToast('💀 Zombie down! +3 salvage','#ef4444');}
+    }
+  }
+  for(const pi of plantInvaders){
+    if(pi.dead) continue;
+    if(Math.abs((pi.x+16)-cx)<REACH_ZOMBIE){
+      pi.hp--; pi.stun=32; pi.vx=P.facing*6;
+      spawnParticles(pi.x-G.camX,pi.y-30,'#16a34a',10,5);
+      spawnFloat(pi.x-G.camX,pi.y-60,pi.hp<=0?'🌿 INVADER DOWN!':'REPELLED!','#86efac');
+      if(pi.hp<=0){pi.dead=true;G.kills++;G.salvage+=4;G.score+=280;spawnParticles(pi.x-G.camX,pi.y-20,'#4ade80',22,6);gToast('🌿 Plant Invader defeated! +4 salvage','#86efac');}
+    }
+  }
+  for(const fp of farmPlots){
+    if(Math.abs(fp.x-cx)<REACH_FARM){
+      if(fp.state==='soil'){fp.state='growing';fp.growTimer=0;spawnFloat(fp.x-G.camX,GF*H-50,'🌱 Planted!','#4ade80');npcSpeak('plant');}
+      else if(fp.state==='ready'){
+        fp.state='soil'; fp.growTimer=0; fp.harvestCount++;
+        G.foodInventory++; G.crops++; G.score+=150;
+        G.infection=Math.max(0, G.infection - 0.06);
+        spawnParticles(fp.x-G.camX,GF*H-30,'#4ade80',14,4);
+        spawnFloat(fp.x-G.camX,GF*H-60,'🌾 +1  −6% ☣','#4ade80');
+        gToast('🌾 Harvested! Infection −6% — Press E at barn to store (SDG 2)','#4ade80');
+        npcSpeak('harvest');
+      }
+    }
+  }
+  for(const sv of survivors){
+    if(sv.healed) continue;
+    if(Math.abs(sv.x-cx)<REACH_SURVIVOR){
+      sv.healed=true;G.survivors++;G.hp=Math.min(100,G.hp+15);G.score+=250;
+      spawnParticles(sv.x-G.camX,sv.y-30,'#4ade80',14,4);
+      spawnFloat(sv.x-G.camX,sv.y-60,'HEALED! +15 HP','#4ade80');
+      gToast(`Survivor healed! (${G.survivors}/${G.survivorsTarget}) — SDG 3`,'#4ade80');
+      npcSpeak('heal');
+      const nearSh=shelterSites.filter(s=>s.built).sort((a,b)=>Math.abs(a.x-sv.x)-Math.abs(b.x-sv.x))[0];
+      if(nearSh){ sv.walkingToShelter=true; sv.shelterTarget=nearSh.x + (shelterSites.indexOf(nearSh)*20-10); }
+    }
+  }
+  for(const sh of shelterSites){
+    if(sh.built) continue;
+    if(Math.abs(sh.x-cx)<REACH_SHELTER){
+      if(G.salvage>=5){
+        G.salvage-=5;sh.lumber++;sh.buildAnim=30;
+        spawnFloat(sh.x-G.camX,GF*H-60,`🪵 ${sh.lumber}/${sh.lumberNeeded} — keep going!`,'#fdba74');
+        if(sh.lumber>=sh.lumberNeeded){
+          sh.built=true;G.shelters++;G.score+=400;
+          spawnParticles(sh.x-G.camX,GF*H-30,'#f97316',22,5);
+          gToast(`🏠 Shelter complete! (${G.shelters}/${G.sheltersTarget}) — SDG 11`,'#fdba74');
+          npcSpeak('shelter');
+        }
+      } else { spawnFloat(sh.x-G.camX,GF*H-60,'Need 5 salvage!','#ef4444'); }
+    }
+  }
+}
+
+function tryStore(){
+  if(sdgPaused) return;
+  const barnCx = barn.x + barn.w/2;
+  const near = Math.abs(P.x + P.w/2 - barnCx) < 90;
+  if(!near){
+    if(G.foodInventory>0) spawnFloat(P.x-G.camX, P.y-50, '🏪 Barn is at ←/→','#fdba74');
+    return;
+  }
+  if(G.foodInventory<=0){
+    spawnFloat(barnCx-G.camX, GF*H-80, 'No food to store!','#ef4444');
+    return;
+  }
+  const deposited = G.foodInventory;
+  G.storedFood += deposited;
+  G.foodInventory = 0;
+  G.score += deposited * 80;
+  spawnParticles(barnCx-G.camX, GF*H-40, '#fcd34d', 16, 5);
+  spawnFloat(barnCx-G.camX, GF*H-90, `+${deposited} stored! 🏪 (${G.storedFood}/${G.storageTarget})`,'#fcd34d');
+  gToast(`🏪 Stored ${deposited} food for the community! (${G.storedFood}/${G.storageTarget}) — SDG 4`,'#fcd34d');
+  npcSpeak('barn');
+  if(!G.sdg4Shown && G.storedFood>0){
+    G.sdg4Shown=true;
+    G.sdgQueue.push(4);
+    if(!sdgPaused) setTimeout(()=>showSDG(G.sdgQueue.shift()),400);
+  }
+}
+
+function npcSpeak(trigger){
+  const line=NPC.lines.find(l=>l.trigger===trigger&&!l.spoken);
+  if(!line) return;
+  line.spoken=true;
+  NPC.currentLine=line.text;
+  NPC.lineTimer=NPC.lineDuration;
+}
+
+function updateNPC(){
+  const ground=GF*H;
+  NPC.y=ground-74;
+
+  // When first shelter is built, NPC walks toward it and goes inside
+  if(!NPC.insideShelter && G.shelters>0 && !NPC.enteringShown){
+    NPC.enteringShown=true;
+    npcSpeak('enterShelter');
+    const firstBuilt = shelterSites.find(s=>s.built);
+    if(firstBuilt){ NPC.targetX = firstBuilt.x; }
+  }
+
+  // Walking to shelter
+  if(NPC.targetX !== undefined && !NPC.insideShelter){
+    const dx = NPC.targetX - NPC.x;
+    if(Math.abs(dx)>10){
+      NPC.x += Math.sign(dx)*1.2;
+      NPC.facing = Math.sign(dx);
+      NPC.walkT++;if(NPC.walkT>6){NPC.walkF=(NPC.walkF+1)%6;NPC.walkT=0;}
+    } else {
+      NPC.insideShelter=true;
+      NPC.currentLine=null;
+      NPC.targetX=undefined;
+    }
+    if(NPC.lineTimer>0) NPC.lineTimer--; else NPC.currentLine=null;
+    return;
+  }
+
+  // Come back out when all zombies are dead
+  if(NPC.insideShelter){
+    const allDead = zombies.every(z=>z.dead) && plantInvaders.every(pi=>pi.dead);
+    if(allDead && !NPC.returnedFromShelter){
+      NPC.returnedFromShelter=true;
+      NPC.insideShelter=false;
+      const firstBuilt = shelterSites.find(s=>s.built);
+      NPC.x = firstBuilt ? firstBuilt.x + 60 : P.x - 80;
+      npcSpeak('zombie'); // "They were farmers once..."
+    }
+    return;
+  }
+
+  // Normal patrol
+  NPC.x+=NPC.vx;
+  if(NPC.x<80||NPC.x>700){NPC.vx*=-1;NPC.facing=NPC.vx>0?1:-1;}
+  NPC.walkT++;if(NPC.walkT>7){NPC.walkF=(NPC.walkF+1)%6;NPC.walkT=0;}
+  NPC.facing=NPC.vx>0?1:-1;
+  if(NPC.lineTimer>0) NPC.lineTimer--;
+  else NPC.currentLine=null;
+
+  // Contextual auto-triggers
+  const startLine=NPC.lines.find(l=>l.trigger==='start'&&!l.spoken);
+  if(startLine&&G.frame>120&&Math.abs(NPC.x-P.x)<400) npcSpeak('start');
+  if(!NPC.lines.find(l=>l.trigger==='neardone').spoken && G.crops>=4&&G.shelters>=2&&G.survivors>=2) npcSpeak('neardone');
+}
+
+function updateFarm(){
+  for(const fp of farmPlots){
+    if(fp.state==='growing'){
+      fp.growTimer++;
+      if(fp.growTimer>=fp.growTime){
+        fp.state='ready';
+        if(fp.harvestCount===0) spawnFloat(fp.x-G.camX,GF*H-60,'🌾 Ready!','#4ade80');
+      }
+    }
+    for(const z of zombies){
+      if(z.dead||fp.state==='soil') continue;
+      if(Math.abs(z.x-fp.x)<28&&Math.random()<0.0015){
+        fp.state='soil'; fp.growTimer=0;
+        spawnFloat(fp.x-G.camX,GF*H-60,'☠ Trampled!','#ef4444');
+      }
+    }
+  }
+}
+
+function updatePlantInvaders(){
+  const ground=GF*H;
+  for(const pi of plantInvaders){
+    if(pi.dead) continue;
+    pi.y=ground-74;
+    if(pi.stun>0){pi.stun--;continue;}
+    const patch=farmPlots.filter(fp=>fp.patch===pi.targetPatch);
+    const patchCx = patch.length>0 ? patch[0].x+PATCH_SP : pi.x+200;
+    const dxPatch = patchCx - pi.x;
+    const dxPlayer=(P.x+P.w/2)-(pi.x+16);
+    pi.rage = Math.abs(dxPlayer)<260;
+    if(pi.rage){pi.vx = dxPlayer>0?2.2:-2.2;}
+    else{pi.vx = dxPatch>0?1.3:-1.3;}
+    pi.x+=pi.vx; pi.x=Math.max(40,Math.min(WORLD_W-40,pi.x));
+    pi.walkF=(pi.walkF+0.14)%6;
+    pi.attackTimer++;
+    if(pi.attackTimer>90){
+      pi.attackTimer=0;
+      for(const fp of patch){
+        if(Math.abs(pi.x-fp.x)<PATCH_SP*1.5 && fp.state!=='soil'){
+          fp.state='soil'; fp.growTimer=0;
+          spawnParticles(fp.x-G.camX,ground-30,'#854d0e',10,4);
+          spawnFloat(fp.x-G.camX,ground-70,'💥 FIELD DESTROYED!','#ef4444');
+          G.screenShake=6;
+          if(!pi.rage) gToast('🌿 Plant Invader destroying your crops! Stop them!','#ef4444');
+          break;
+        }
+      }
+    }
+    if(Math.abs(dxPlayer)<34&&G.frame%70===0){
+      G.hp=Math.max(0,G.hp-9); G.screenShake=8;
+      G.infection=Math.min(1,G.infection+0.02);
+      spawnFloat(P.x-G.camX,P.y-40,'-9 HP 🌿','#86efac');
+      if(G.hp<=0) triggerDeath();
+    }
+  }
+}
+
+function spawnWave(waveNum){
+  const waveZombies = waveNum===1 ? [
+    {x:200,  vx:1.4, hp:4,maxHp:4},
+    {x:500,  vx:1.2, hp:3,maxHp:3},
+    {x:1800, vx:-1.3,hp:4,maxHp:4},
+    {x:3000, vx:-1.5,hp:4,maxHp:4},
+    {x:3500, vx:-1.1,hp:5,maxHp:5},
+  ] : [
+    {x:150,  vx:1.7, hp:5,maxHp:5},
+    {x:700,  vx:1.5, hp:4,maxHp:4},
+    {x:1400, vx:-1.6,hp:5,maxHp:5},
+    {x:2800, vx:-1.8,hp:5,maxHp:5},
+    {x:3600, vx:-1.4,hp:6,maxHp:6},
+  ];
+  const ground=GF*H;
+  for(const wz of waveZombies){
+    zombies.push({
+      id:zombies.length, x:wz.x, y:ground-74,
+      vx:wz.vx, hp:wz.hp, maxHp:wz.maxHp,
+      dead:false, stun:0, walkF:0, type:'normal'
+    });
+  }
+  G.screenShake=14;
+  gToast(`☠ ZOMBIE WAVE ${waveNum+1} INCOMING! ${waveZombies.length} hostiles!`,'#ef4444');
+  spawnParticles(P.x-G.camX, P.y-30,'#ef4444',20,6);
+}
+
+function updateSurvivors(){
+  const ground = GF*H;
+  for(const sv of survivors){
+    sv.y = ground - 58;
+    if(sv.walkingToShelter && sv.shelterTarget !== undefined){
+      const dx = sv.shelterTarget - sv.x;
+      if(Math.abs(dx)>8){ sv.x += Math.sign(dx)*0.8; }
+      else { sv.walkingToShelter=false; sv.atShelter=true; sv.x=sv.shelterTarget; }
+    }
+  }
+}
+
+function updateZombies(){
+  const ground=GF*H;
+  for(const z of zombies){
+    if(z.dead) continue;
+    z.y=ground-74;
+    if(z.stun>0){z.stun--;continue;}
+    const dx=(P.x+P.w/2)-(z.x+16);
+    if(Math.abs(dx)<500){z.vx=dx>0?1.9:-1.9;}
+    else if(z.x<80||z.x>WORLD_W-80) z.vx*=-1;
+    z.x+=z.vx; z.x=Math.max(40,Math.min(WORLD_W-40,z.x));
+    z.walkF=(z.walkF+0.15)%6;
+    if(Math.abs(dx)<34&&G.frame%60===0){
+      G.hp=Math.max(0,G.hp-12); G.screenShake=8;
+      G.infection=Math.min(1,G.infection+0.025);
+      spawnFloat(P.x-G.camX,P.y-40,'-8 HP 🧟','#ef4444');
+      if(G.hp<=0) triggerDeath();
+    }
+  }
+}
+
+function updatePickups(){
+  const ground=GF*H;
+  for(const pk of pickups){
+    if(pk.collected) continue;
+    const dx=Math.abs(P.x+P.w/2-pk.x), dy=Math.abs(P.y+P.h-(ground-24));
+    if(dx<44&&dy<55){
+      pk.collected=true;
+      if(pk.type==='mask'){G.maskTime+=450;G.infection=Math.max(0,G.infection-.1);spawnFloat(pk.x-G.camX,ground-60,'😷 Gas Mask +10s','#67e8f9');gToast('😷 Gas mask! Slows infection 10s','#06b6d4');}
+      else if(pk.type==='medkit'){G.hp=Math.min(100,G.hp+20);spawnFloat(pk.x-G.camX,ground-60,'+20 HP 💊','#4ade80');gToast('💊 Medkit +20 HP','#4ade80');}
+      else if(pk.type==='salvage'){G.salvage=Math.min(999,G.salvage+pk.v);G.score+=pk.v*10;spawnFloat(pk.x-G.camX,ground-60,`+${pk.v} Salvage 💰`,'#fcd34d');gToast(`💰 Salvage +${pk.v} — SDG 1`,'#fcd34d');}
+      else if(pk.type==='lumber'){G.salvage=Math.min(999,G.salvage+3);G.score+=30;spawnFloat(pk.x-G.camX,ground-60,'+3 Salvage','#fdba74');gToast('🪵 Lumber → +3 salvage','#fdba74');}
+      else if(pk.type==='herb'){G.infection=Math.max(0,G.infection-.18);G.hp=Math.min(100,G.hp+10);spawnParticles(pk.x-G.camX,ground-40,'#86efac',14,4);spawnFloat(pk.x-G.camX,ground-65,'🌿 −18% Infection / +10 HP','#86efac');gToast('🌿 Medicinal herb! Infection reduced.','#86efac');}
+      else if(pk.type==='cure'){G.infection=Math.max(0,G.infection-.45);G.hp=Math.min(100,G.hp+25);G.maskTime+=900;spawnParticles(pk.x-G.camX,ground-40,'#a3e635',20,5);spawnFloat(pk.x-G.camX,ground-70,'🌱 PURGE HERB! −45% Infection','#a3e635');gToast('🌱 Purge Herb! Land cleanses itself — SDG 3','#a3e635');G.screenShake=6;npcSpeak('zombie');}
+    }
+  }
+  if(!G.cureHerbSpawned){
+    const allDead=[...zombies,...plantInvaders].every(z=>z.dead);
+    if(allDead){
+      G.cureHerbSpawned=true;
+      pickups.push({id:99,x:WORLD_W/2,type:'cure',collected:false});
+      gToast('☀ Zombies defeated! A Purge Herb blooms at the centre!','#a3e635');
+    }
+  }
+}
+
+function updateInfection(){
+  // Already dead — skip
+  if(G.lose||G.win) return;
+  // Fully zombified: count down 4 seconds then die
+  if(G.isZombie){
+    G.zombieTimer++;
+    if(G.zombieTimer>240) triggerDeath(); // 4 seconds at 60fps
+    return;
+  }
+  G.infection+=(G.maskTime>0?INFECT_MASK:INFECT_RATE);
+  if(G.maskTime>0) G.maskTime--;
+  G.infection-=G.shelters*0.0004;
+  G.infection=Math.max(0,Math.min(1,G.infection));
+  if(G.infection>=1) triggerZombieTransform();
+  if(G.infection>0.85&&G.frame%120===0){G.hp=Math.max(0,G.hp-2);if(G.hp<=0)triggerDeath();}
+}
+
+function triggerZombieTransform(){
+  // Player becomes zombie — NO speed boost, just visual change + 4s countdown then death
+  G.isZombie=true; G.zombieTimer=0; G.infection=1;
+  G.screenShake=22;
+  gToast('🧟 FULLY INFECTED — TRANSFORMING IN 4 SECONDS…','#7c3aed');
+  gToast('🌱 Find a PURGE HERB to survive!','#a3e635');
+}
+function triggerDeath(){
+  if(G.lose||G.win) return;
+  G.lose=true; G.running=false; setTimeout(showEnd,600);
+}
+
+function checkWin(){
+  const allDone=G.crops>=G.cropsTarget&&G.survivors>=G.survivorsTarget&&G.shelters>=G.sheltersTarget&&G.salvage>=G.salvageTarget&&G.storedFood>=G.storageTarget;
+  const atExit=P.x>WORLD_W-260;
+  if(allDone && !G.extractionUnlocked){
+    G.extractionUnlocked=true;
+    document.getElementById('mt5').classList.add('active-task');
+    gToast('✅ ALL OBJECTIVES COMPLETE! Reach EXTRACTION on the far right! →','#4ade80');
+    G.screenShake=10;
+  }
+  if(atExit && allDone){
+    G.win=true; G.running=false;
+    document.getElementById('mt5').classList.add('done');
+    document.getElementById('mt5').querySelector('.m-bullet').textContent='●';
+    setTimeout(showEnd,400);
+  } else if(atExit && !allDone){
+    P.x=WORLD_W-262;
+    spawnFloat(WORLD_W-260-G.camX,GF*H-80,'⚠ Complete all objectives first!','#f97316');
+  }
+}
+
+function showEnd(){
+  const ov=document.getElementById('g-overlay');
+  ov.style.display='flex';
+  ov.style.pointerEvents='all';
+  const sc=document.getElementById('g-end-screen');
+  if(G.win){
+    sc.style.maxWidth='680px';
+    sc.innerHTML=`
+      <div style="margin-bottom:4px">
+        <div style="font-family:'Bebas Neue';font-size:10px;letter-spacing:.5em;color:#4ade80;margin-bottom:6px;">ZONE 1 · THE DEAD FARM</div>
+        <div style="font-family:'Rubik Dirt';font-size:clamp(28px,6vw,52px);color:#f0a830;line-height:.9;margin-bottom:4px;">ZONE CLEARED</div>
+        <div style="font-family:'Share Tech Mono';font-size:9px;letter-spacing:.3em;color:rgba(212,200,168,.35);">EXTRACTION SUCCESSFUL · MISSION ACCOMPLISHED</div>
+      </div>
+      <div style="width:60px;height:1px;background:linear-gradient(90deg,transparent,rgba(240,168,48,.4),transparent);margin:14px auto;"></div>
+      <p style="font-size:12px;line-height:1.7;color:rgba(212,200,168,.55);margin-bottom:18px;">
+        The dead farm breathes again. You dismantled the poverty trap, ended the hunger cycle,<br>
+        restored community health, and built shelter where there was none.
+      </p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px;text-align:left;">
+        <div style="background:rgba(229,36,59,.08);border:1px solid rgba(229,36,59,.2);border-radius:4px;padding:10px 12px;">
+          <div style="font-family:'Share Tech Mono';font-size:8px;letter-spacing:.2em;color:#f87171;margin-bottom:3px;">SDG 01</div>
+          <div style="font-family:'Bebas Neue';font-size:15px;color:#fca5a5;letter-spacing:.05em;">NO POVERTY</div>
+          <div style="font-family:'Share Tech Mono';font-size:11px;color:#f87171;margin:2px 0 4px;">${G.salvage} salvage collected</div>
+          <div style="font-size:10px;color:rgba(212,200,168,.4);line-height:1.5;">Resources unlock survival. Without them, every other goal collapses.</div>
+        </div>
+        <div style="background:rgba(221,166,58,.08);border:1px solid rgba(221,166,58,.2);border-radius:4px;padding:10px 12px;">
+          <div style="font-family:'Share Tech Mono';font-size:8px;letter-spacing:.2em;color:#fcd34d;margin-bottom:3px;">SDG 02</div>
+          <div style="font-family:'Bebas Neue';font-size:15px;color:#fde68a;letter-spacing:.05em;">ZERO HUNGER</div>
+          <div style="font-family:'Share Tech Mono';font-size:11px;color:#fcd34d;margin:2px 0 4px;">${G.crops}/${G.cropsTarget} crops harvested</div>
+          <div style="font-size:10px;color:rgba(212,200,168,.4);line-height:1.5;">Food is the first medicine. Each harvest reduced the infection rate.</div>
+        </div>
+        <div style="background:rgba(76,159,56,.08);border:1px solid rgba(76,159,56,.2);border-radius:4px;padding:10px 12px;">
+          <div style="font-family:'Share Tech Mono';font-size:8px;letter-spacing:.2em;color:#86efac;margin-bottom:3px;">SDG 03</div>
+          <div style="font-family:'Bebas Neue';font-size:15px;color:#bbf7d0;letter-spacing:.05em;">GOOD HEALTH</div>
+          <div style="font-family:'Share Tech Mono';font-size:11px;color:#86efac;margin:2px 0 4px;">${G.survivors}/${G.survivorsTarget} survivors healed</div>
+          <div style="font-size:10px;color:rgba(212,200,168,.4);line-height:1.5;">Post-war zones lose more to disease than combat. You changed that.</div>
+        </div>
+        <div style="background:rgba(252,211,77,.07);border:1px solid rgba(252,211,77,.18);border-radius:4px;padding:10px 12px;">
+          <div style="font-family:'Share Tech Mono';font-size:8px;letter-spacing:.2em;color:#fde68a;margin-bottom:3px;">SDG 04</div>
+          <div style="font-family:'Bebas Neue';font-size:15px;color:#fef08a;letter-spacing:.05em;">COMMUNITY</div>
+          <div style="font-family:'Share Tech Mono';font-size:11px;color:#fde68a;margin:2px 0 4px;">${G.storedFood}/${G.storageTarget} food shared</div>
+          <div style="font-size:10px;color:rgba(212,200,168,.4);line-height:1.5;">Shared resources create resilient communities.</div>
+        </div>
+        <div style="background:rgba(253,157,36,.08);border:1px solid rgba(253,157,36,.2);border-radius:4px;padding:10px 12px;">
+          <div style="font-family:'Share Tech Mono';font-size:8px;letter-spacing:.2em;color:#fdba74;margin-bottom:3px;">SDG 11</div>
+          <div style="font-family:'Bebas Neue';font-size:15px;color:#fed7aa;letter-spacing:.05em;">COMMUNITIES</div>
+          <div style="font-family:'Share Tech Mono';font-size:11px;color:#fdba74;margin:2px 0 4px;">${G.shelters}/${G.sheltersTarget} shelters built</div>
+          <div style="font-size:10px;color:rgba(212,200,168,.4);line-height:1.5;">Shelter is not comfort — it's dignity.</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:4px;padding:10px 12px;">
+          <div style="font-family:'Share Tech Mono';font-size:8px;letter-spacing:.2em;color:rgba(212,200,168,.4);margin-bottom:3px;">FINAL SCORE</div>
+          <div style="font-family:'Rubik Dirt';font-size:26px;color:#f0a830;">${G.score}</div>
+          <div style="font-family:'Share Tech Mono';font-size:9px;color:rgba(212,200,168,.3);margin-top:4px;">KILLS: ${G.kills} · ZONE 1/5</div>
+        </div>
+      </div>
+      <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.15);border-radius:3px;padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;text-align:left;">
+        <div style="font-family:'Bebas Neue';font-size:22px;color:#4ade80;flex-shrink:0;">ZONE 2</div>
+        <div>
+          <div style="font-family:'Share Tech Mono';font-size:9px;color:#4ade80;letter-spacing:.2em;">UNLOCKED — THE RUINED TOWN</div>
+          <div style="font-size:11px;color:rgba(212,200,168,.4);margin-top:2px;">SDG 4 · Education | SDG 6 · Clean Water | SDG 7 · Energy</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="g-btn" style="pointer-events:all;cursor:pointer;background:linear-gradient(135deg,#1a4a2a,#4ade80);font-size:15px;padding:12px 28px;" onclick="goToLevelSelect()">LEVEL SELECT</button>
+        <button class="g-btn" style="pointer-events:all;cursor:pointer;font-size:15px;padding:12px 28px;" onclick="goToLevelSelect()">REPLAY ZONE 1</button>
+      </div>`;
+  } else {
+    const reason=G.isZombie?'The bioweapon infection consumed you completely. You turned.':G.hp<=0?'The zombies overwhelmed your defences.':'The poison air filled your lungs.';
+    const tip = G.crops<2?'Plant crops the moment you land — they take 6-7 seconds to grow.':G.survivors<1?'Find the sick survivors early — healing them gives +15 HP.':'Build shelters to passively slow your infection rate.';
+    sc.innerHTML=`
+      <div style="font-family:'Bebas Neue';font-size:10px;letter-spacing:.5em;color:#ef4444;margin-bottom:10px;">ZONE 1 · THE DEAD FARM</div>
+      <div style="font-family:'Rubik Dirt';font-size:clamp(32px,7vw,56px);color:#ef4444;line-height:.9;margin-bottom:6px;">ZONE LOST</div>
+      <div style="font-family:'Share Tech Mono';font-size:9px;letter-spacing:.3em;color:rgba(212,200,168,.25);margin-bottom:18px;">MISSION FAILED</div>
+      <div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.18);border-radius:3px;padding:12px 16px;margin-bottom:16px;text-align:left;">
+        <div style="font-family:'Share Tech Mono';font-size:9px;color:#f87171;letter-spacing:.2em;margin-bottom:5px;">AFTER-ACTION REPORT</div>
+        <div style="font-size:12px;color:rgba(212,200,168,.6);line-height:1.65;">${reason}</div>
+      </div>
+      <div style="background:rgba(212,168,48,.06);border:1px solid rgba(212,168,48,.15);border-radius:3px;padding:10px 16px;margin-bottom:20px;text-align:left;">
+        <div style="font-family:'Share Tech Mono';font-size:9px;color:#d4a830;letter-spacing:.2em;margin-bottom:4px;">FIELD INTELLIGENCE</div>
+        <div style="font-size:12px;color:rgba(212,200,168,.5);">${tip}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:18px;">
+        <div class="stat-box"><div class="stat-box-num" style="color:#fcd34d">${G.crops}/${G.cropsTarget}</div><div class="stat-box-label">Crops</div></div>
+        <div class="stat-box"><div class="stat-box-num" style="color:#86efac">${G.survivors}/3</div><div class="stat-box-label">Healed</div></div>
+        <div class="stat-box"><div class="stat-box-num" style="color:#fdba74">${G.shelters}/3</div><div class="stat-box-label">Shelters</div></div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="g-btn" style="pointer-events:all;cursor:pointer;background:linear-gradient(135deg,#7f1d1d,#ef4444);font-size:15px;padding:12px 28px;" onclick="goToLevelSelect()">RETRY ZONE 1</button>
+        <button class="g-btn alt" style="pointer-events:all;cursor:pointer;font-size:15px;padding:12px 28px;" onclick="goToLevelSelect()">ZONE SELECT</button>
+      </div>`;
+  }
+}
+
+function goToLevelSelect(){
+  document.getElementById('g-overlay').style.display='none';
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('homepage').style.display='block';
+  const intro = document.getElementById('intro-overlay');
+  if(intro) intro.style.display='none';
+  const ms = document.getElementById('map-screen');
+  if(ms){ ms.classList.add('visible'); ms.style.display='flex'; }
+  G.running=false;
+}
+window.goToLevelSelect=goToLevelSelect;
+
+// ═══════════════════════════════════════════════════════════════════
+// DRAWING HELPERS
+// ═══════════════════════════════════════════════════════════════════
+function rr(x,y,w,h,r,fill){
+  ctx.fillStyle=fill;
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();ctx.fill();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DRAW BACKGROUND — FIX: all drawing in one closed function
+// ═══════════════════════════════════════════════════════════════════
+function drawBG(){
+  const gy=GF*H;
+
+  // Sky gradient
+  const sg=ctx.createLinearGradient(0,0,0,gy);
+  sg.addColorStop(0,'#0a0e14');sg.addColorStop(0.25,'#141a0e');sg.addColorStop(0.55,'#1e2210');sg.addColorStop(0.78,'#2e2a0a');sg.addColorStop(1,'#3a2808');
+  ctx.fillStyle=sg;ctx.fillRect(0,0,W,gy);
+
+  // Horizon amber glow
+  const hg2=ctx.createLinearGradient(0,gy*.55,0,gy);
+  hg2.addColorStop(0,'rgba(0,0,0,0)');hg2.addColorStop(0.5,'rgba(180,80,10,.08)');hg2.addColorStop(1,'rgba(220,100,10,.18)');
+  ctx.fillStyle=hg2;ctx.fillRect(0,gy*.55,W,gy*.45);
+
+  // Smoke columns
+  for(let i=0;i<4;i++){
+    const sx2=((i*600+250)-G.camX*0.12+WORLD_W*.1)%(W+400)-200;
+    const smokeH=120+i*30;
+    const sg3=ctx.createLinearGradient(sx2,gy*.12,sx2,gy*.12+smokeH);
+    sg3.addColorStop(0,'rgba(0,0,0,0)');sg3.addColorStop(0.4,`rgba(80,70,50,${0.07+i*.015})`);sg3.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=sg3;ctx.beginPath();ctx.ellipse(sx2,gy*.15+smokeH/2,14+i*4,smokeH/2,0,0,Math.PI*2);ctx.fill();
+  }
+
+  // Stars
+  ctx.fillStyle='rgba(200,210,180,.35)';
+  for(let i=0;i<50;i++){
+    const stx=((i*197+G.camX*.04)%W);const sty=(i*83+20)%(gy*.45);
+    ctx.beginPath();ctx.arc(stx,sty,(i%3===0?.8:.4),0,Math.PI*2);ctx.fill();
+  }
+
+  // Distant ruins parallax
+  ctx.save();ctx.globalAlpha=0.1;
+  for(let i=0;i<10;i++){const bx=((i*340+100)-G.camX*0.18+WORLD_W*.18)%W;const bh=60+i*18;ctx.fillStyle='#1e1c10';ctx.fillRect(bx,gy-bh,50+i*8,bh);}
+  ctx.restore();
+
+  // Fog bands
+  for(let i=0;i<2;i++){
+    const fogX=((G.frame*0.2*(i+1)*0.4+i*500)%(W+300))-150;
+    const fg2=ctx.createRadialGradient(fogX,gy*.65,0,fogX,gy*.65,180+i*70);
+    fg2.addColorStop(0,`rgba(70,160,30,${0.04+i*.012})`);fg2.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=fg2;ctx.fillRect(0,0,W,H);
+  }
+
+  // Background dead trees (parallax 0.6x)
+  for(let i=0;i<28;i++){
+    const bx=(i*160+60)-G.camX*0.6;
+    if(bx<-120||bx>W+120) continue;
+    ctx.save();ctx.globalAlpha=0.5;
+    const variant=i%5;
+    if(variant===0){
+      ctx.fillStyle='#1a1808';ctx.fillRect(bx,GF*H-55,28+i%3*8,55);
+      ctx.fillStyle='#0e1004';ctx.fillRect(bx-3,GF*H-55,6,20);
+    } else if(variant===1){
+      ctx.strokeStyle='#1c1608';ctx.lineWidth=6;
+      ctx.beginPath();ctx.moveTo(bx,GF*H);ctx.lineTo(bx,GF*H-90);ctx.stroke();
+      ctx.lineWidth=3;
+      ctx.beginPath();ctx.moveTo(bx,GF*H-60);ctx.lineTo(bx-22,GF*H-80);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(bx,GF*H-50);ctx.lineTo(bx+18,GF*H-66);ctx.stroke();
+    } else if(variant===2){
+      ctx.fillStyle='#1a1208';
+      ctx.beginPath();ctx.moveTo(bx-8,GF*H);ctx.lineTo(bx-6,GF*H-38);ctx.lineTo(bx+2,GF*H-42);ctx.lineTo(bx+10,GF*H-35);ctx.lineTo(bx+8,GF*H);ctx.closePath();ctx.fill();
+    } else if(variant===3){
+      ctx.strokeStyle='#181408';ctx.lineWidth=5;
+      ctx.save();ctx.translate(bx,GF*H);ctx.rotate(-0.18);
+      ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,-80);ctx.stroke();
+      ctx.restore();
+    } else {
+      for(let si=0;si<3;si++){
+        ctx.fillStyle=`rgba(20,16,8,${0.7+si*.05})`;
+        ctx.beginPath();ctx.ellipse(bx+si*12-10,GF*H-8-si*3,5,8+si*2,0.1*si,0,Math.PI*2);ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  // Ground
+  ctx.fillStyle='#161208';ctx.fillRect(0,gy,W,H-gy+2);
+  ctx.fillStyle='#1e1808';ctx.fillRect(0,gy,W,4);
+  for(let cx2=0;cx2<W;cx2+=80){const off=((cx2*5+G.camX*.08)%80);ctx.fillStyle='rgba(30,20,5,.5)';ctx.fillRect(cx2-off,gy+8,40,1);}
+
+  // Platforms
+  for(const pl of platforms){
+    const px=pl.x-G.camX, py=pl.yF*H;
+    rr(px,py,pl.w,12,3,'#3d2c10');
+    ctx.fillStyle='#523c18';ctx.fillRect(px+3,py+2,pl.w-6,2);
+    for(let bx2=px+12;bx2<px+pl.w-8;bx2+=22){ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(bx2,py,2,12);}
+  }
+
+  // ── HAYBALES ──
+  const haybalePositions=[180,420,860,1150,1680,1920,2340,2580,2870,3120,3380];
+  for(const hbx of haybalePositions){
+    const hsx=hbx-G.camX*0.7;
+    if(hsx<-60||hsx>W+60) continue;
+    const hsy=gy-2;
+    ctx.fillStyle='#8a6820';ctx.beginPath();ctx.ellipse(hsx,hsy-10,18,12,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#6a5010';ctx.lineWidth=1.2;
+    for(let hl=-14;hl<14;hl+=4){ctx.beginPath();ctx.moveTo(hsx+hl,hsy-20);ctx.lineTo(hsx+hl,hsy);ctx.stroke();}
+    ctx.strokeStyle='#a08030';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(hsx,hsy-10,18,12,0,0,Math.PI*2);ctx.stroke();
+  }
+
+  // ── EXTRA DEAD TREES / STUMPS ──
+  const extraTrees=[110,290,490,680,1020,1280,1500,1780,2050,2260,2480,2720,2950,3180,3420];
+  for(let i=0;i<extraTrees.length;i++){
+    const tx=extraTrees[i]-G.camX*0.58;
+    if(tx<-80||tx>W+60) continue;
+    const ts = 0.7+((i*7)%10)*.06;
+    ctx.save();ctx.translate(tx,gy);ctx.scale(ts,ts);
+    const variant=i%5;
+    ctx.strokeStyle='rgba(40,30,12,.7)';ctx.fillStyle='rgba(40,30,12,.7)';
+    if(variant<2){
+      ctx.fillRect(-6,0,12,-28);
+    } else if(variant<4){
+      ctx.fillRect(-5,0,10,-50);
+    } else {
+      ctx.lineWidth=7;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,-35);ctx.stroke();
+      ctx.lineWidth=4;
+      ctx.beginPath();ctx.moveTo(0,-35);ctx.lineTo(-14,-56);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(0,-35);ctx.lineTo(12,-52);ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // ── FARM PATCHES ──
+  const patchGroups=[0,1,2];
+  for(const pId of patchGroups){
+    const slots=farmPlots.filter(f=>f.patch===pId);
+    if(!slots.length) continue;
+    const bedL=slots[0].x-G.camX-28;
+    const bedW=(slots.length-1)*PATCH_SP+56;
+    const allSoil=slots.every(s=>s.state==='soil');
+    const bedCol=allSoil?'#2a1c08':slots.some(s=>s.state==='ready')?'#3d5818':'#3a4818';
+    rr(bedL,gy-14,bedW,14,3,bedCol);
+    ctx.fillStyle='rgba(0,0,0,.25)';
+    for(let si=1;si<slots.length;si++) ctx.fillRect(bedL+si*PATCH_SP-1,gy-14,2,14);
+    const pLabel=['PATCH A','PATCH B','PATCH C'][pId];
+    ctx.font='bold 8px Share Tech Mono';ctx.fillStyle='rgba(212,200,168,.25)';ctx.textAlign='center';
+    ctx.fillText(pLabel,bedL+bedW/2,gy-17);
+    for(const fp of slots){
+      const fpx=fp.x-G.camX;
+      if(fp.state==='growing'){
+        const prog=fp.growTimer/fp.growTime;
+        const stemH=8+prog*20;
+        for(let si=0;si<4;si++){
+          ctx.strokeStyle=`rgba(${60+prog*60},${120+prog*60},30,.8)`;ctx.lineWidth=1.5;
+          ctx.beginPath();ctx.moveTo(fpx-14+si*10,gy-14);
+          ctx.quadraticCurveTo(fpx-14+si*10+Math.sin(G.frame*.04+si+fp.id)*4,gy-14-stemH*.6,fpx-14+si*10+Math.sin(G.frame*.04+si+fp.id)*2,gy-14-stemH);
+          ctx.stroke();
+        }
+        ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(fpx-22,gy-5,44,3);
+        ctx.fillStyle=`hsl(${80+prog*40},70%,45%)`;ctx.fillRect(fpx-22,gy-5,44*prog,3);
+      } else if(fp.state==='ready'){
+        ctx.shadowColor='#86efac';ctx.shadowBlur=6;
+        for(let si=0;si<5;si++){
+          const sx2=fpx-18+si*9;
+          ctx.strokeStyle='#b5a020';ctx.lineWidth=2;
+          ctx.beginPath();ctx.moveTo(sx2,gy-14);ctx.lineTo(sx2,gy-36);ctx.stroke();
+          ctx.fillStyle='#d4b830';ctx.beginPath();ctx.ellipse(sx2,gy-38,3,5,Math.sin(si)*.3,0,Math.PI*2);ctx.fill();
+        }
+        ctx.shadowBlur=0;
+        ctx.font='bold 9px Share Tech Mono';ctx.fillStyle='#86efac';ctx.textAlign='center';
+        ctx.fillText('[F]',fpx,gy-44);
+      } else {
+        ctx.font='bold 9px Share Tech Mono';ctx.fillStyle='rgba(212,200,168,.35)';ctx.textAlign='center';
+        ctx.fillText('[F]',fpx,gy-18);
+      }
+    }
+    const anyReady=slots.some(s=>s.state==='ready');
+    ctx.font='9px Share Tech Mono';ctx.fillStyle=anyReady?'#86efac':'rgba(212,200,168,.3)';ctx.textAlign='center';
+    ctx.fillText(anyReady?'HARVEST READY':'PLANT [F]',bedL+bedW/2,gy-46);
+  }
+
+  // ── SHELTER SITES ──
+  for(const sh of shelterSites){
+    const sx=sh.x-G.camX;
+    const hw=148, hh=142;
+    const hx=sx-hw/2;
+    if(sh.buildAnim>0) sh.buildAnim--;
+
+    if(sh.built){
+      // Foundation
+      ctx.fillStyle='#5c4828';ctx.fillRect(hx-14,gy-10,hw+28,10);
+      ctx.fillStyle='#4a3a1c';
+      for(let sb=0;sb<5;sb++){ctx.beginPath();ctx.ellipse(hx-6+sb*32,gy-6,14,5,0,0,Math.PI*2);ctx.fill();}
+      // Walls
+      ctx.fillStyle='#7a5a30';
+      ctx.beginPath();ctx.moveTo(hx,gy);ctx.lineTo(hx,gy-hh+12);ctx.quadraticCurveTo(hx+4,gy-hh,hx+8,gy-hh);
+      ctx.lineTo(hx+hw-8,gy-hh);ctx.quadraticCurveTo(hx+hw-4,gy-hh,hx+hw,gy-hh+12);ctx.lineTo(hx+hw,gy);ctx.closePath();ctx.fill();
+      ctx.fillStyle='#6a4c24';
+      for(let r=0;r<8;r++){const rx=hx+8+r*17,ry=gy-hh+20+((r%3)*30);ctx.fillRect(rx,ry,12+r%4*3,4+r%3*2);}
+      ctx.strokeStyle='rgba(180,150,60,.25)';ctx.lineWidth=1;
+      for(let rl=gy-hh+10;rl<gy-12;rl+=8){ctx.beginPath();ctx.moveTo(hx+6,rl);ctx.lineTo(hx+hw-6,rl);ctx.stroke();}
+      // Roof
+      ctx.fillStyle='#8a6a20';
+      ctx.beginPath();ctx.moveTo(hx-20,gy-hh);ctx.lineTo(sx-30,gy-hh-50);ctx.lineTo(sx,gy-hh-80);ctx.lineTo(sx+30,gy-hh-50);ctx.lineTo(hx+hw+20,gy-hh);ctx.closePath();ctx.fill();
+      for(let tl=0;tl<5;tl++){
+        ctx.strokeStyle=`rgba(60,40,8,${0.35+tl*.08})`;ctx.lineWidth=5+tl;
+        ctx.beginPath();ctx.moveTo(hx-20+tl*20,gy-hh+tl*8);ctx.lineTo(sx,gy-hh-60+tl*15);ctx.lineTo(hx+hw+20-tl*20,gy-hh+tl*8);ctx.stroke();
+      }
+      // Door
+      ctx.fillStyle='#1e1008';ctx.beginPath();ctx.arc(sx,gy-32,16,Math.PI,0);ctx.fill();ctx.fillRect(sx-16,gy-32,32,32);
+      ctx.fillStyle='rgba(100,80,40,.7)';
+      ctx.beginPath();ctx.moveTo(sx-16,gy-32);ctx.lineTo(sx+4,gy-48);ctx.lineTo(sx+16,gy-32);ctx.lineTo(sx+16,gy);ctx.lineTo(sx-16,gy);ctx.closePath();ctx.fill();
+      // Glow
+      ctx.shadowColor='#f97316';ctx.shadowBlur=22;
+      ctx.strokeStyle='rgba(251,146,60,.6)';ctx.lineWidth=2.5;ctx.strokeRect(hx-6,gy-hh-6,hw+12,hh+6);
+      ctx.shadowBlur=0;
+      ctx.font='bold 11px "Share Tech Mono"';ctx.fillStyle='#fdba74';ctx.textAlign='center';
+      ctx.shadowColor='rgba(0,0,0,.8)';ctx.shadowBlur=4;
+      ctx.fillText('SHELTER ESTABLISHED',sx,gy-hh-90);
+      ctx.shadowBlur=0;
+      ctx.font='8px "Share Tech Mono"';ctx.fillStyle='rgba(212,186,120,.5)';
+      ctx.fillText('SDG 11 · SAFE ZONE',sx,gy-hh-76);
+    } else {
+      const prog=sh.lumber/sh.lumberNeeded;
+      ctx.fillStyle='rgba(80,60,30,.3)';ctx.fillRect(hx,gy-4,hw,4);
+      ctx.save();ctx.setLineDash([6,5]);
+      ctx.strokeStyle=`rgba(160,130,80,${0.18+prog*.2})`;ctx.lineWidth=1;
+      ctx.strokeRect(hx,gy-hh,hw,hh);
+      ctx.beginPath();ctx.moveTo(hx-16,gy-hh);ctx.lineTo(sx,gy-hh-60);ctx.lineTo(hx+hw+16,gy-hh);ctx.stroke();
+      ctx.setLineDash([]);ctx.restore();
+      // Scaffold poles
+      ctx.strokeStyle='#8a7040';ctx.lineWidth=5;
+      ctx.beginPath();ctx.moveTo(hx+12,gy+2);ctx.lineTo(hx+12,gy-hh-8);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(hx+hw-12,gy+2);ctx.lineTo(hx+hw-12,gy-hh-8);ctx.stroke();
+      ctx.strokeStyle='#7a6030';ctx.lineWidth=2.5;
+      for(let sc=gy-20;sc>gy-hh-4;sc-=26){ctx.beginPath();ctx.moveTo(hx+12,sc);ctx.lineTo(hx+hw-12,sc);ctx.stroke();}
+      if(prog>0){
+        const fillH=Math.floor(hh*prog);
+        ctx.fillStyle='rgba(90,65,30,.55)';ctx.fillRect(hx+12,gy-fillH,hw-24,fillH);
+      }
+      if(sh.buildAnim>0){
+        const ha=sh.buildAnim/30;
+        ctx.save();ctx.translate(sx,gy-Math.max(20,hh*prog)-8);
+        ctx.rotate(-0.8+ha*1.6);
+        rr(-3,-22,6,22,2,'#c0803a');rr(-7,-30,14,9,2,'#999');
+        ctx.restore();
+      }
+      ctx.fillStyle='rgba(10,8,4,.8)';rr(sx-28,gy-hh-36,56,20,4,'rgba(10,8,4,.8)');
+      ctx.strokeStyle=prog>0.5?'#fdba74':'rgba(160,130,80,.5)';ctx.lineWidth=1.5;ctx.strokeRect(sx-28,gy-hh-36,56,20);
+      ctx.font='bold 11px Share Tech Mono';ctx.fillStyle=prog>0?'#fdba74':'rgba(160,130,80,.6)';ctx.textAlign='center';
+      ctx.fillText(`${sh.lumber}/${sh.lumberNeeded}`,sx,gy-hh-22);
+      ctx.font='bold 10px Share Tech Mono';ctx.fillStyle='rgba(253,186,116,.8)';ctx.textAlign='center';
+      ctx.fillText('[F] BUILD HERE',sx,gy-hh-44);
+      ctx.font='8px Share Tech Mono';ctx.fillStyle='rgba(212,200,168,.3)';
+      ctx.fillText('5 salvage per strike',sx,gy-hh-10);
+    }
+  }
+
+  // ── COMMUNITY BARN ──
+  const barnSX = barn.x - G.camX;
+  const nearBarn = Math.abs(P.x+P.w/2 - barn.x - barn.w/2) < 90;
+  const barnBodyH = 100;
+  ctx.fillStyle='#4a1a0a';rr(barnSX,gy-barnBodyH,barn.w,barnBodyH,4,'#4a1a0a');
+  ctx.fillStyle='rgba(0,0,0,.75)';rr(barnSX+barn.w/2-20,gy-55,40,55,3,'rgba(0,0,0,.75)');
+  ctx.fillStyle='#3a1008';
+  ctx.beginPath();ctx.moveTo(barnSX-8,gy-barnBodyH);ctx.lineTo(barnSX+barn.w/2,gy-barnBodyH-48);ctx.lineTo(barnSX+barn.w+8,gy-barnBodyH);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#521808';
+  ctx.beginPath();ctx.moveTo(barnSX+8,gy-barnBodyH);ctx.lineTo(barnSX+barn.w/2,gy-barnBodyH-32);ctx.lineTo(barnSX+barn.w-8,gy-barnBodyH);ctx.closePath();ctx.fill();
+  const storeBar = G.storedFood/G.storageTarget;
+  ctx.fillStyle='rgba(252,211,77,.08)';ctx.fillRect(barnSX+8,gy-50,barn.w-16,40);
+  ctx.fillStyle='rgba(252,211,77,.3)';ctx.fillRect(barnSX+8,gy-50+(40*(1-storeBar)),barn.w-16,40*storeBar);
+  ctx.strokeStyle='#7a3018';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(barnSX,gy-barnBodyH);ctx.lineTo(barnSX+barn.w,gy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(barnSX+barn.w,gy-barnBodyH);ctx.lineTo(barnSX,gy);ctx.stroke();
+  if(nearBarn){ctx.shadowColor='#fcd34d';ctx.shadowBlur=20;ctx.strokeStyle='rgba(252,211,77,.5)';ctx.lineWidth=2;ctx.strokeRect(barnSX-2,gy-barnBodyH-2,barn.w+4,barnBodyH+4);ctx.shadowBlur=0;}
+  ctx.font='bold 11px Share Tech Mono';ctx.fillStyle=nearBarn?'#fde68a':'rgba(252,211,77,.5)';ctx.textAlign='center';
+  ctx.fillText('COMMUNITY BARN',barnSX+barn.w/2,gy-barnBodyH-56);
+  ctx.font='bold 9px Share Tech Mono';ctx.fillStyle='rgba(252,211,77,.6)';
+  ctx.fillText(nearBarn?'[E] STORE FOOD':'SDG 4 · Food Store',barnSX+barn.w/2,gy-barnBodyH-42);
+  ctx.font='8px Share Tech Mono';ctx.fillStyle='rgba(212,200,168,.4)';
+  ctx.fillText(`${G.storedFood}/${G.storageTarget} stored`,barnSX+barn.w/2,gy-barnBodyH-28);
+
+  // Exit zone
+  const ex=WORLD_W-240-G.camX;
+  const allDone2=G.crops>=G.cropsTarget&&G.survivors>=G.survivorsTarget&&G.shelters>=G.sheltersTarget&&G.salvage>=G.salvageTarget&&G.storedFood>=G.storageTarget;
+  ctx.save();ctx.globalAlpha=allDone2?0.9:0.25;
+  ctx.fillStyle=allDone2?'rgba(74,222,128,.15)':'rgba(255,255,255,.04)';
+  ctx.fillRect(ex,gy-180,120,180);
+  ctx.font='bold 12px Share Tech Mono';ctx.fillStyle=allDone2?'#4ade80':'rgba(255,255,255,.3)';ctx.textAlign='center';
+  ctx.fillText(allDone2?'⬆ EXTRACT':'🔒 INCOMPLETE',ex+60,gy-18);
+  ctx.restore();
+
+  // Debris
+  drawDebris();
+} // ← FIX: properly closed drawBG function
+
+function drawDebris(){
+  const gy=GF*H;
+  for(const d of debris){
+    if(d.dead) continue;
+    const dx=d.x-G.camX;
+    ctx.save();
+    if(d.hp===1)ctx.translate(Math.sin(G.frame*.3)*1.5,0);
+    switch(d.type){
+      case 'crate':rr(dx-18,gy-40,36,40,3,'#5c3a1a');ctx.strokeStyle='#7a5028';ctx.lineWidth=1.5;ctx.strokeRect(dx-18,gy-40,36,40);ctx.beginPath();ctx.moveTo(dx-18,gy-20);ctx.lineTo(dx+18,gy-20);ctx.stroke();ctx.beginPath();ctx.moveTo(dx,gy-40);ctx.lineTo(dx,gy);ctx.stroke();break;
+      case 'barrel':ctx.fillStyle='#2a4a2a';ctx.beginPath();ctx.ellipse(dx,gy-18,12,18,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#4a8a4a';ctx.lineWidth=2;ctx.beginPath();ctx.arc(dx,gy-18,12,0,Math.PI*2);ctx.stroke();break;
+      case 'tank_chunk':rr(dx-28,gy-26,56,26,3,'#2a3020');ctx.fillStyle='#1a2015';ctx.fillRect(dx-32,gy-12,64,7);ctx.fillStyle='#3a4030';ctx.beginPath();ctx.arc(dx,gy-20,9,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#4a5040';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(dx,gy-20);ctx.lineTo(dx+32,gy-24);ctx.stroke();break;
+      case 'sandbags':for(let si=0;si<3;si++){rr(dx-26+si*18,gy-14-si%2*12,20,14,5,si%2===0?'#8b7040':'#7a6038');}break;
+      case 'wire_nest':ctx.strokeStyle='#7a6020';ctx.lineWidth=2;for(let wi=0;wi<5;wi++){ctx.beginPath();ctx.arc(dx+Math.cos(wi/5*Math.PI*2)*14,gy-14+Math.sin(wi/5*Math.PI*2)*7,11,0,Math.PI*2);ctx.stroke();}break;
+      case 'crater_pile':ctx.fillStyle='#3d2a0a';for(let ci=0;ci<5;ci++){const ca=ci/5*Math.PI*2;ctx.beginPath();ctx.arc(dx+Math.cos(ca)*20,gy-5+Math.sin(ca)*7,9,0,Math.PI*2);ctx.fill();}break;
+      case 'shell':rr(dx-5,gy-32,10,32,3,'#8a7030');ctx.fillStyle='#b09050';ctx.beginPath();ctx.arc(dx,gy-32,7,Math.PI,0);ctx.fill();break;
+      case 'fence_wreck':ctx.strokeStyle='#5a3a18';ctx.lineWidth=3;for(let fi=0;fi<4;fi++){ctx.save();ctx.translate(dx-24+fi*16,gy);ctx.rotate((fi%2===0?-0.3:0.3));ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,-36);ctx.stroke();ctx.restore();}break;
+    }
+    for(let hi=0;hi<d.hp;hi++){ctx.fillStyle='#ef4444';ctx.beginPath();ctx.arc(dx-4+hi*10,gy-50,3,0,Math.PI*2);ctx.fill();}
+    ctx.restore();
+  }
+}
+
+function drawPickups(){
+  const gy=GF*H;
+  for(const pk of pickups){
+    if(pk.collected) continue;
+    const px=pk.x-G.camX;
+    const bob=Math.sin(G.frame*.08+(pk.id||0))*4;
+    ctx.save();ctx.translate(px,gy-28+bob);
+    if(pk.type==='mask'){ctx.shadowColor='#06b6d4';ctx.shadowBlur=10;ctx.fillStyle='#164e63';ctx.beginPath();ctx.ellipse(0,0,14,12,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#0891b2';ctx.beginPath();ctx.ellipse(-4,-2,5,4,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(4,-2,5,4,0,0,Math.PI*2);ctx.fill();ctx.font='9px Share Tech Mono';ctx.fillStyle='#67e8f9';ctx.textAlign='center';ctx.fillText('MASK',0,-18);}
+    else if(pk.type==='medkit'){ctx.shadowColor='#4ade80';ctx.shadowBlur=10;rr(-11,-11,22,22,3,'#16a34a');ctx.fillStyle='#4ade80';ctx.fillRect(-2,-9,4,18);ctx.fillRect(-9,-2,18,4);ctx.font='9px Share Tech Mono';ctx.fillStyle='#86efac';ctx.textAlign='center';ctx.fillText('+20HP',0,-18);}
+    else if(pk.type==='salvage'){ctx.shadowColor='#fcd34d';ctx.shadowBlur=10;ctx.fillStyle='#d4820a';ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();ctx.font='bold 9px Share Tech Mono';ctx.fillStyle='#fef3c7';ctx.textAlign='center';ctx.fillText('$',0,3);ctx.font='9px Share Tech Mono';ctx.fillStyle='#fcd34d';ctx.fillText(`+${pk.v||5}`,0,-16);}
+    else if(pk.type==='lumber'){ctx.shadowColor='#fdba74';ctx.shadowBlur=8;ctx.fillStyle='#7c4a18';ctx.fillRect(-12,-4,24,8);ctx.fillRect(-8,-8,4,16);ctx.fillRect(4,-8,4,16);ctx.font='9px Share Tech Mono';ctx.fillStyle='#fdba74';ctx.textAlign='center';ctx.fillText('LUMBER',0,-16);}
+    else if(pk.type==='herb'){
+      ctx.shadowColor='#86efac';ctx.shadowBlur=12;
+      ctx.strokeStyle='#16a34a';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(0,6);ctx.lineTo(0,-10);ctx.stroke();
+      ctx.fillStyle='#4ade80';
+      ctx.beginPath();ctx.ellipse(-6,-8,7,5,-.6,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(6,-6,7,5,.6,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(0,-12,5,4,0,0,Math.PI*2);ctx.fill();
+      ctx.font='bold 9px Share Tech Mono';ctx.fillStyle='#86efac';ctx.textAlign='center';ctx.fillText('🌿 HERB',0,-22);
+      ctx.shadowBlur=0;
+    }
+    else if(pk.type==='cure'){
+      ctx.shadowColor='#a3e635';ctx.shadowBlur=20;
+      ctx.strokeStyle='#65a30d';ctx.lineWidth=3;
+      ctx.beginPath();ctx.moveTo(0,8);ctx.lineTo(0,-14);ctx.stroke();
+      ctx.fillStyle='#84cc16';
+      for(let li=0;li<5;li++){
+        const a=li/5*Math.PI*2-Math.PI/2;
+        ctx.save();ctx.translate(Math.cos(a)*10,Math.sin(a)*10-4);ctx.rotate(a+Math.PI/2);
+        ctx.beginPath();ctx.ellipse(0,0,8,4,0,0,Math.PI*2);ctx.fill();ctx.restore();
+      }
+      ctx.fillStyle='#fde047';ctx.shadowColor='#fde047';ctx.shadowBlur=10;
+      ctx.beginPath();ctx.arc(0,-4,5,0,Math.PI*2);ctx.fill();
+      ctx.shadowBlur=0;
+      ctx.font='bold 9px Share Tech Mono';ctx.fillStyle='#d9f99d';ctx.textAlign='center';ctx.fillText('PURGE HERB!',0,-24);
+    }
+    ctx.shadowBlur=0;ctx.restore();
+  }
+}
+
+function drawSurvivors(){
+  const gy=GF*H;
+  for(const sv of survivors){
+    if(sv.atShelter){
+      const sx=sv.x-G.camX;
+      ctx.save();ctx.translate(sx,gy-2);
+      ctx.fillStyle='#7a9060';ctx.fillRect(-5,-30,10,30);
+      ctx.fillStyle='#b0a080';ctx.beginPath();ctx.arc(0,-36,7,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+      continue;
+    }
+    if(sv.healed) continue;
+    const sx=sv.x-G.camX;
+    const bob=Math.sin(G.frame*.05+sv.id)*1.5;
+    ctx.save();ctx.translate(sx,gy+bob);
+    ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(0,0,13,3,0,0,Math.PI*2);ctx.fill();
+    rr(-9,-24,9,24,3,'#4a3020');rr(0,-20,9,20,3,'#4a3020');
+    rr(-11,-52,22,28,6,'#6a3a1a');
+    ctx.fillStyle='#6a3a1a';
+    ctx.beginPath();ctx.arc(-11,-40,7,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(10,-40,7,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#c8856a';ctx.fillRect(-4,-56,8,8);
+    ctx.fillStyle='#c8856a';ctx.beginPath();ctx.ellipse(0,-65,12,13,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(239,68,68,.35)';ctx.beginPath();ctx.ellipse(0,-65,10,11,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#5a2010';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(-4,-66,3,-0.3,Math.PI+0.3);ctx.stroke();
+    ctx.beginPath();ctx.arc(4,-66,3,-0.3,Math.PI+0.3);ctx.stroke();
+    ctx.fillStyle='#2a1a08';ctx.beginPath();ctx.ellipse(0,-76,11,6,0,Math.PI,Math.PI*2);ctx.fill();
+    ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('🤒',0,-86);
+    const nearSv=Math.abs(P.x+P.w/2-sv.x)<70;
+    ctx.font='bold 9px Share Tech Mono';ctx.fillStyle=nearSv?'#fde68a':'rgba(251,146,60,.6)';
+    ctx.fillText(nearSv?'[F] HEAL NOW':'[F] HEAL',0,-98);
+    ctx.restore();
+  }
+}
+
+function drawZombies(){
+  const gy=GF*H;
+  for(const z of zombies){
+    if(z.dead) continue;
+    const zx=z.x-G.camX;
+    const facing=z.vx>=0?1:-1;
+    const bob=Math.sin(G.frame*.1+z.id)*1.5;
+    ctx.save();ctx.translate(zx+16,gy+bob);
+    ctx.fillStyle='rgba(0,0,0,.4)';ctx.beginPath();ctx.ellipse(0,0,14,3,0,0,Math.PI*2);ctx.fill();
+    const legS=Math.sin(z.walkF*Math.PI/3)*10;
+    rr((-8*facing-legS/2),-30,9,28,3,'#1a2a08');
+    rr((2*facing+legS/2),-30,9,28,3,'#1a2a08');
+    rr((-9*facing-legS/2),-4,11,6,2,'#0e1504');
+    rr((1*facing+legS/2),-4,11,6,2,'#0e1504');
+    rr(-12,-58,24,30,6,'#1a3010');
+    ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(-12,-42,6,3);ctx.fillRect(2,-50,5,3);
+    ctx.fillStyle='#1a3010';rr((-14*facing),-57,8,20,4,'#1a3010');
+    ctx.save();ctx.translate(13*facing,-55);ctx.rotate(Math.sin(z.walkF*.5)*.4);rr(-4,-18,8,20,4,'#1a3010');ctx.restore();
+    ctx.fillStyle='#3a5020';ctx.fillRect(-4,-62,8,8);
+    ctx.shadowColor='rgba(60,140,10,.35)';ctx.shadowBlur=8;
+    ctx.fillStyle='#3a5020';ctx.beginPath();ctx.ellipse(0,-74,15,16,0,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.fillStyle='rgba(80,220,20,.85)';ctx.shadowColor='#60ff10';ctx.shadowBlur=7;
+    ctx.beginPath();ctx.ellipse(-5*facing,-75,4,5,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(5*facing,-75,4,5,0,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.fillStyle='rgba(200,190,170,.7)';ctx.fillRect(-5,-68,10,3);
+    ctx.fillStyle='rgba(0,0,0,.5)';for(let ti=0;ti<4;ti++)ctx.fillRect(-4+ti*3,-68,1,3);
+    ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(-16,-96,32,4);
+    ctx.fillStyle=`hsl(${z.hp/z.maxHp*120},90%,50%)`;ctx.fillRect(-16,-96,32*z.hp/z.maxHp,4);
+    ctx.restore();
+  }
+
+  // Plant Invaders
+  for(const pi of plantInvaders){
+    if(pi.dead) continue;
+    const px=pi.x-G.camX;
+    const gy2=gy;
+    const facing=pi.vx>=0?1:-1;
+    const bob=Math.sin(G.frame*.12+pi.id*2)*1.5;
+    ctx.save();ctx.translate(px+16,gy2+bob);
+    ctx.fillStyle='rgba(0,0,0,.4)';ctx.beginPath();ctx.ellipse(0,0,14,3,0,0,Math.PI*2);ctx.fill();
+    const legS=Math.sin(pi.walkF*Math.PI/3)*10;
+    rr((-8*facing-legS/2),-30,9,28,3,'#1a3a08');
+    rr((2*facing+legS/2),-30,9,28,3,'#1a3a08');
+    rr(-13,-60,26,32,6,'#1e4010');
+    ctx.fillStyle='#2a5818';
+    ctx.beginPath();ctx.ellipse(-8,-50,7,5,-.5,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(6,-44,6,4,.4,0,Math.PI*2);ctx.fill();
+    rr((-15*facing),-58,8,22,4,'#1e4010');
+    ctx.save();ctx.translate(14*facing,-54);ctx.rotate(pi.rage?Math.sin(G.frame*.2)*0.5:-0.3);
+    rr(-4,-20,8,22,4,'#1e4010');
+    if(pi.debrisCarried){ctx.fillStyle='#5a4020';rr(-6,-28,14,10,2,'#5a4020');}
+    ctx.restore();
+    ctx.fillStyle='#2a5010';ctx.fillRect(-5,-64,10,7);
+    ctx.shadowColor='rgba(30,120,10,.4)';ctx.shadowBlur=10;
+    ctx.fillStyle='#2a4a18';ctx.beginPath();ctx.ellipse(0,-76,15,16,0,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.strokeStyle='#4a7020';ctx.lineWidth=2;
+    for(let li=0;li<4;li++){
+      const lx=(-14+li*9);const sway=Math.sin(G.frame*.06+li+pi.id)*4;
+      ctx.beginPath();ctx.moveTo(lx,-88);ctx.quadraticCurveTo(lx+sway,-98,lx+sway*1.5,-106);ctx.stroke();
+      ctx.fillStyle='#5a8018';ctx.beginPath();ctx.ellipse(lx+sway*1.5,-108,4,3,Math.sin(li)*.5,0,Math.PI*2);ctx.fill();
+    }
+    ctx.fillStyle=pi.rage?'rgba(255,60,20,.95)':'rgba(200,80,20,.8)';
+    ctx.shadowColor=pi.rage?'#ff3010':'#c04010';ctx.shadowBlur=pi.rage?10:5;
+    ctx.beginPath();ctx.ellipse(-5*facing,-77,4,5,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(5*facing,-77,4,5,0,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    if(pi.rage){ctx.font='bold 8px Share Tech Mono';ctx.fillStyle='#ef4444';ctx.textAlign='center';ctx.fillText('ENRAGED!',0,-116);}
+    ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(-16,-98,32,4);
+    ctx.fillStyle='#22c55e';ctx.fillRect(-16,-98,32*pi.hp/pi.maxHp,4);
+    ctx.font='8px Share Tech Mono';ctx.fillStyle='rgba(74,222,128,.6)';ctx.textAlign='center';ctx.fillText('INVADER',0,-102);
+    ctx.restore();
+  }
+}
+
+function drawPlayer(){
+  const sx=P.x-G.camX+P.w/2, sy=P.y;
+  const d=P.facing;
+  const zl=G.isZombie?1:Math.min(1,Math.max(0,(G.infection-.5)*2));
+  const sr=Math.round(188*(1-zl)+60*zl);
+  const sg2=Math.round(138*(1-zl)+140*zl);
+  const sb=Math.round(96*(1-zl)+40*zl);
+  const skin=`rgb(${sr},${sg2},${sb})`;
+  const jackCol=G.isZombie?'#1a3010':'#3a3020';
+  const jackDark=G.isZombie?'#0e1a08':'#2a2216';
+  const trousCol=G.isZombie?'#0e1a08':'#222818';
+  const bootCol=G.isZombie?'#060a04':'#2a1e10';
+  const bandCol=G.isZombie?'#1a2a10':'#5a3020';
+  const wrappCol='#4a3018';
+  const legS=P.walking&&P.onGround?Math.sin(P.walkF*Math.PI/3)*13:0;
+  const punchA=G.attackAnim>0?(12-G.attackAnim)/12:0;
+  const breathOff=Math.sin(G.frame*.04)*.8;
+  ctx.save();
+  if(G.isZombie){ctx.shadowColor='rgba(80,200,20,.5)';ctx.shadowBlur=18;}
+  ctx.translate(sx, sy+P.h+breathOff);
+  ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(0,0,18,4,0,0,Math.PI*2);ctx.fill();
+  // Boots
+  ctx.save();ctx.translate(-8*d-legS/2,-2);ctx.rotate(legS*.018);
+  ctx.fillStyle=bootCol;ctx.beginPath();ctx.moveTo(-6,-2);ctx.lineTo(-6,-8);ctx.lineTo(8,-8);ctx.lineTo(10,-2);ctx.lineTo(10,2);ctx.lineTo(-8,2);ctx.closePath();ctx.fill();
+  ctx.restore();
+  ctx.save();ctx.translate(8*d+legS/2,-2);ctx.rotate(-legS*.018);
+  ctx.fillStyle=bootCol;ctx.beginPath();ctx.moveTo(-6,-2);ctx.lineTo(-6,-8);ctx.lineTo(8,-8);ctx.lineTo(10,-2);ctx.lineTo(10,2);ctx.lineTo(-8,2);ctx.closePath();ctx.fill();
+  ctx.restore();
+  // Legs
+  ctx.save();ctx.translate(-8*d-legS/2,-20);ctx.rotate(legS*.016);rr(-5,-22,10,24,3,trousCol);ctx.restore();
+  ctx.save();ctx.translate(8*d+legS/2,-20);ctx.rotate(-legS*.016);rr(-5,-22,10,24,3,trousCol);ctx.restore();
+  // Torso
+  rr(-13,-56,26,32,7,jackCol);
+  ctx.fillStyle=jackDark;ctx.beginPath();ctx.moveTo(-4,-56);ctx.lineTo(0,-48);ctx.lineTo(4,-56);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#3a2810';ctx.fillRect(-13,-28,26,5);
+  ctx.fillStyle='#6a5020';rr(-4,-30,8,6,1,'#6a5020');
+  // Arms
+  ctx.save();ctx.translate(-16*d,-50);ctx.rotate(-0.25+Math.sin(P.walkF*Math.PI/3)*.012-punchA*1.2*d);
+  rr(-4,-18,8,20,4,jackCol);ctx.fillStyle=wrappCol;ctx.fillRect(-4,-4,8,5);
+  ctx.fillStyle=skin;ctx.beginPath();ctx.arc(0,-18,5,0,Math.PI*2);ctx.fill();ctx.restore();
+  ctx.save();ctx.translate(16*d,-50);ctx.rotate(0.25+punchA*1.4*d);
+  rr(-4,-18,8,20,4,jackCol);ctx.fillStyle=wrappCol;ctx.fillRect(-4,-4,8,5);
+  ctx.fillStyle=skin;ctx.beginPath();ctx.arc(0,-18,5,0,Math.PI*2);ctx.fill();ctx.restore();
+  // Neck & head
+  ctx.fillStyle=skin;ctx.fillRect(-4,-62,8,8);
+  ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=5;
+  ctx.fillStyle=skin;ctx.beginPath();ctx.ellipse(0,-74,14,16,0,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.fillStyle=G.isZombie?'#1a2a08':'#2a1a0a';
+  ctx.beginPath();ctx.ellipse(0,-85,12,7,0,Math.PI,Math.PI*2);ctx.fill();
+  ctx.fillRect(-12,-85,24,5);
+  if(G.maskTime>0){
+    ctx.shadowColor='#06b6d4';ctx.shadowBlur=8;
+    ctx.fillStyle='rgba(16,60,85,.9)';ctx.beginPath();ctx.ellipse(0,-74,13,12,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#0891b2';ctx.beginPath();ctx.ellipse(-5*d,-76,5,4,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(5*d,-76,5,4,0,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+  } else if(G.isZombie){
+    ctx.fillStyle='rgba(80,220,20,.85)';ctx.shadowColor='#80ff20';ctx.shadowBlur=9;
+    ctx.beginPath();ctx.ellipse(-5*d,-76,4,5,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(5*d,-76,4,5,0,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+  } else {
+    ctx.fillStyle='#fff';
+    ctx.beginPath();ctx.ellipse(-5*d,-77,5,5.5,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(5*d,-77,5,5.5,0,0,Math.PI*2);ctx.fill();
+    const eyeC=zl>.3?'rgba(80,180,20,.9)':'#1a0a00';
+    ctx.fillStyle=eyeC;
+    ctx.beginPath();ctx.ellipse(-4.5*d,-77,2.8,3.6,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(5.5*d,-77,2.8,3.6,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=bandCol;
+    ctx.beginPath();ctx.ellipse(0,-70,12,7,0,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+  if(G.attackAnim>0){
+    ctx.save();ctx.globalAlpha=G.attackAnim/12*.6;
+    ctx.fillStyle='#fcd34d';ctx.shadowColor='#fcd34d';ctx.shadowBlur=16;
+    ctx.beginPath();ctx.arc(sx+P.facing*38,sy+P.h*.4,16,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;ctx.restore();
+    G.attackAnim--;
+  }
+}
+
+function drawNPC(){
+  if(NPC.insideShelter) return;
+  const gy=GF*H;
+  const nx=NPC.x-G.camX;
+  const d=NPC.facing;
+  const bob=Math.sin(G.frame*.035)*1.5;
+  ctx.save();ctx.translate(nx,gy+bob);
+  ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(0,0,14,3,0,0,Math.PI*2);ctx.fill();
+  const legS=Math.sin(NPC.walkF*Math.PI/3)*8;
+  rr((-7*d-legS/2),-28,9,28,3,'#3a2c18');
+  rr((3*d+legS/2),-28,9,28,3,'#3a2c18');
+  rr(-14,-66,28,38,8,'#4a3828');
+  ctx.fillStyle='#6a4a20';ctx.fillRect(-14,-38,28,5);
+  ctx.strokeStyle='#5a3a1a';ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(-16*d,-62);ctx.lineTo(-16*d,4);ctx.stroke();
+  ctx.fillStyle='#a08040';ctx.beginPath();ctx.arc(-16*d,-64,3,0,Math.PI*2);ctx.fill();
+  rr((-15*d),-62,9,22,4,'#4a3828');
+  ctx.save();ctx.translate(14*d,-56);ctx.rotate(Math.sin(G.frame*.025)*.15);rr(-4,-18,9,22,4,'#4a3828');ctx.restore();
+  ctx.fillStyle='#7a5030';ctx.beginPath();ctx.arc(14*d,-38,5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#7a5030';ctx.fillRect(-4,-68,8,8);
+  ctx.fillStyle='#7a5030';ctx.beginPath();ctx.ellipse(0,-78,13,15,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#3a2c18';ctx.beginPath();ctx.ellipse(0,-86,12,8,0,Math.PI,Math.PI*2);ctx.fill();
+  ctx.fillRect(-12,-87,24,5);
+  ctx.fillStyle='rgba(0,0,0,.8)';
+  ctx.beginPath();ctx.ellipse(-5*d,-80,4.5,4,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(4*d,-80,4.5,4,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#2a1808';
+  ctx.beginPath();ctx.ellipse(-5*d,-80,2.5,3,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(4*d,-80,2.5,3,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(220,210,190,.8)';
+  ctx.beginPath();ctx.moveTo(-6,-72);ctx.lineTo(-8,-64);ctx.lineTo(-2,-60);ctx.lineTo(4,-64);ctx.lineTo(7,-72);ctx.closePath();ctx.fill();
+  ctx.font='bold 9px Share Tech Mono';ctx.fillStyle='rgba(212,180,120,.7)';ctx.textAlign='center';
+  ctx.fillText('ELDER MARA',0,-98);
+  ctx.restore();
+
+  // ── NPC speech bubble ──
+  if(NPC.currentLine && NPC.lineTimer > 0){
+    const alpha = Math.min(1, NPC.lineTimer / 20);
+    const maxW = 260;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.font = 'bold 12px Barlow, sans-serif';
+    // word-wrap
+    const words = NPC.currentLine.split(' ');
+    const lines2 = []; let cur = '';
+    for(const w of words){
+      const t = cur ? cur+' '+w : w;
+      if(ctx.measureText(t).width > maxW - 20){ lines2.push(cur); cur = w; } else cur = t;
+    }
+    if(cur) lines2.push(cur);
+    const lh = 17, pad = 14;
+    const bh = lines2.length * lh + pad * 2 + 14; // +14 for name label
+    const bw = maxW;
+    // position: above NPC, lifted well above ground objects
+    const bLeft = nx - bw / 2;
+    const bBottom = gy - 200; // anchor bottom of box here — well above obstacles
+    const bTop = bBottom - bh;
+
+    // box background
+    rr(bLeft, bTop, bw, bh, 7, 'rgba(8,6,2,.95)');
+    // amber border
+    ctx.strokeStyle = 'rgba(220,168,60,.65)'; ctx.lineWidth = 1.5;
+    ctx.strokeRect(bLeft, bTop, bw, bh);
+    // corner accent dots
+    const corners = [[bLeft+4,bTop+4],[bLeft+bw-4,bTop+4],[bLeft+4,bTop+bh-4],[bLeft+bw-4,bTop+bh-4]];
+    ctx.fillStyle='rgba(220,168,60,.5)';
+    for(const [cx2,cy2] of corners){ctx.beginPath();ctx.arc(cx2,cy2,2,0,Math.PI*2);ctx.fill();}
+    // speaker name
+    ctx.font = 'bold 9px "Share Tech Mono", monospace';
+    ctx.fillStyle = '#d4a830';
+    ctx.textAlign = 'left';
+    ctx.fillText('ELDER MARA', bLeft + 10, bTop + 12);
+    // divider
+    ctx.strokeStyle = 'rgba(212,168,60,.25)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(bLeft+10, bTop+16); ctx.lineTo(bLeft+bw-10, bTop+16); ctx.stroke();
+    // text lines
+    ctx.font = '12px Barlow, sans-serif';
+    ctx.fillStyle = 'rgba(235,225,195,.92)';
+    ctx.textAlign = 'center';
+    lines2.forEach((ln, i) => ctx.fillText(ln, nx, bTop + 16 + pad + (i + 1) * lh));
+    // tail pointing down to NPC
+    ctx.fillStyle = 'rgba(8,6,2,.95)';
+    ctx.beginPath(); ctx.moveTo(nx - 8, bBottom); ctx.lineTo(nx, bBottom + 14); ctx.lineTo(nx + 8, bBottom); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(220,168,60,.5)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(nx - 8, bBottom); ctx.lineTo(nx, bBottom + 14); ctx.lineTo(nx + 8, bBottom); ctx.stroke();
+    ctx.restore();
+  }
+}
+
+function drawFloatsParticles(){
+  for(const f of floats){ctx.save();ctx.globalAlpha=f.life;ctx.font='bold 13px Barlow';ctx.fillStyle=f.col;ctx.textAlign='center';ctx.shadowColor=f.col;ctx.shadowBlur=6;ctx.fillText(f.txt,f.x,f.y);ctx.restore();}
+  for(const p of particles){ctx.save();ctx.globalAlpha=p.life;ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();ctx.restore();}
+}
+
+function drawPoisonOverlay(){
+  const a=G.infection*.1;
+  if(a>.01){ctx.fillStyle=`rgba(50,140,15,${a})`;ctx.fillRect(0,0,W,H);}
+  // Zombie transformation — red pulsing warning
+  if(G.isZombie){
+    const pulse=0.18+Math.sin(G.frame*.25)*.12;
+    ctx.fillStyle=`rgba(100,10,140,${pulse})`;ctx.fillRect(0,0,W,H);
+    // countdown text
+    const remaining = Math.max(0, Math.ceil((240-G.zombieTimer)/60));
+    ctx.save();
+    ctx.font='bold 28px "Bebas Neue",sans-serif';
+    ctx.fillStyle=`rgba(220,60,255,${0.6+Math.sin(G.frame*.3)*.4})`;
+    ctx.textAlign='center';
+    ctx.shadowColor='#9900ff';ctx.shadowBlur=20;
+    ctx.fillText(`🧟 INFECTED — ${remaining}s`,W/2,H/2-20);
+    ctx.font='14px "Share Tech Mono",monospace';
+    ctx.fillStyle='rgba(220,180,255,.7)';
+    ctx.shadowBlur=8;
+    ctx.fillText('FIND PURGE HERB TO SURVIVE',W/2,H/2+14);
+    ctx.shadowBlur=0;
+    ctx.restore();
+  }
+  const vg=ctx.createRadialGradient(W/2,H/2,H*.25,W/2,H/2,H*.75);
+  vg.addColorStop(0,'rgba(0,0,0,0)');
+  vg.addColorStop(1,`rgba(5,15,2,${G.infection*.3})`);
+  ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+}
+
+function drawMinimap(){
+  const mx=W-128,my=H-38,mw=116,mh=9;
+  rr(mx-4,my-18,mw+8,mh+22,3,'rgba(10,12,8,.7)');
+  ctx.fillStyle='rgba(255,255,255,.05)';ctx.fillRect(mx,my,mw,mh);
+  for(const d of debris){if(d.dead)continue;const px=mx+d.x/WORLD_W*mw;ctx.fillStyle='#f97316';ctx.fillRect(px-1,my-1,3,mh+2);}
+  for(const fp of farmPlots){const px=mx+fp.x/WORLD_W*mw;ctx.fillStyle=fp.state==='ready'?'#4ade80':fp.state==='growing'?'rgba(134,239,172,.4)':'rgba(134,239,172,.15)';ctx.fillRect(px-1,my,3,mh);}
+  for(const z of zombies){if(z.dead)continue;const px=mx+z.x/WORLD_W*mw;ctx.fillStyle='#7c3aed';ctx.fillRect(px-1,my-1,3,mh+2);}
+  for(const pi of plantInvaders){if(pi.dead)continue;const px=mx+pi.x/WORLD_W*mw;ctx.fillStyle='#22c55e';ctx.fillRect(px-2,my-2,4,mh+4);}
+  ctx.fillStyle='#e8e4d8';ctx.fillRect(mx+P.x/WORLD_W*mw-2,my-2,4,mh+4);
+  ctx.font='8px Share Tech Mono';ctx.fillStyle='rgba(212,200,168,.3)';ctx.textAlign='left';ctx.fillText('MAP',mx,my-6);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MAIN LOOP
+// ═══════════════════════════════════════════════════════════════════
+function loop(){
+  requestAnimationFrame(loop);
+  if(!G.running) return;
+  G.frame++;
+
+  if(!sdgPaused){
+    physics();
+    updateInfection();
+    updateZombies();
+    updatePlantInvaders();
+    updateFarm();
+    updatePickups();
+    updateNPC();
+    updateSurvivors();
+    checkWin();
+    if(!G.waveSpawned1 && G.frame===1800){G.waveSpawned1=true; spawnWave(1);}
+    if(!G.waveSpawned2 && G.frame===3600){G.waveSpawned2=true; spawnWave(2);}
+    if(G.attackCooldown>0) G.attackCooldown--;
+    if(inp.attack&&G.attackCooldown===0) tryAttack();
+    // FIX: store triggers once per key press using storePressed flag
+    if(inp.store && !inp.storeUsed){ inp.storeUsed=true; tryStore(); }
+  }
+  updateFloats(); updateParticles();
+
+  ctx.save();
+  if(G.screenShake>0){ctx.translate((Math.random()-.5)*G.screenShake,(Math.random()-.5)*G.screenShake);G.screenShake=Math.max(0,G.screenShake-1);}
+  drawBG();
+  drawPickups();
+  drawSurvivors();
+  drawNPC();
+  drawZombies();
+  drawPlayer();
+  drawFloatsParticles();
+  drawMinimap();
+
+  // Extraction zone marker
+  const exX = WORLD_W - 200 - G.camX;
+  if(exX > 0 && exX < W){
+    const gnd = GF*H;
+    const alpha = 0.4 + Math.sin(G.frame*0.06)*0.3;
+    ctx.save();
+    ctx.globalAlpha = G.extractionUnlocked ? Math.min(1, alpha + 0.3) : alpha * 0.4;
+    ctx.fillStyle = G.extractionUnlocked ? '#4ade80' : '#f97316';
+    ctx.fillRect(exX-2, gnd-120, 6, 120);
+    ctx.fillRect(exX+100, gnd-120, 6, 120);
+    ctx.fillStyle = G.extractionUnlocked ? 'rgba(74,222,128,.3)' : 'rgba(249,115,22,.15)';
+    ctx.fillRect(exX, gnd-120, 102, 120);
+    ctx.font = 'bold 11px "Share Tech Mono"';
+    ctx.fillStyle = G.extractionUnlocked ? '#4ade80' : 'rgba(249,115,22,.6)';
+    ctx.textAlign = 'center';
+    ctx.fillText(G.extractionUnlocked?'▶ EXTRACTION ◀':'[ EXTRACTION ]', exX+50, gnd-130);
+    if(G.extractionUnlocked){ctx.font='bold 10px "Share Tech Mono"';ctx.fillStyle='#86efac';ctx.fillText('ALL CLEAR — GO!', exX+50, gnd-145);}
+    ctx.restore();
+  }
+
+  drawPoisonOverlay();
+  ctx.restore();
+  updateHUD();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// INPUT — FIX: added dialogue choice keys (1/2/3) and F for continue
+// ═══════════════════════════════════════════════════════════════════
+window.addEventListener('keydown',e=>{
+  if(!G.running) return;
+  const k=e.key;
+
+  if(k==='ArrowLeft'||k==='a'||k==='A') inp.left=true;
+  if(k==='ArrowRight'||k==='d'||k==='D') inp.right=true;
+  if((k==='ArrowUp'||k==='w'||k==='W'||k===' ')&&!inp.jump) inp.jump=true;
+  if((k==='f'||k==='F'||k==='ArrowDown'||k==='s'||k==='S')&&!inp.attackPressed){inp.attackPressed=true;inp.attack=true;}
+  if((k==='e'||k==='E')&&!inp.storePressed){inp.storePressed=true;inp.store=true;inp.storeUsed=false;}
+  if(k==='Enter'&&sdgPaused) dismissSDG();
+  e.preventDefault();
+},{passive:false});
+
+window.addEventListener('keyup',e=>{
+  const k=e.key;
+  if(k==='ArrowLeft'||k==='a'||k==='A') inp.left=false;
+  if(k==='ArrowRight'||k==='d'||k==='D') inp.right=false;
+  if(k==='ArrowUp'||k==='w'||k==='W'||k===' ') inp.jump=false;
+  if(k==='f'||k==='F'||k==='ArrowDown'||k==='s'||k==='S'){inp.attack=false;inp.attackPressed=false;}
+  if(k==='e'||k==='E'){inp.store=false;inp.storePressed=false;inp.storeUsed=false;}
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════
+function initGame(){
+  resizeGC();
+  const gy=GF*H;
+  for(const z of zombies) z.y=gy-74;
+  for(const sv of survivors) sv.y=gy-74;
+  for(const pi of plantInvaders) pi.y=gy-74;
+  P.y=gy-P.h-1;
+  G.running=true;
+  loop();
+  setTimeout(()=>gToast('☣ Poison air detected! Find gas masks!','#84cc16'),500);
+  setTimeout(()=>gToast('🌱 Stand close to soil patch, press F to PLANT — wait for it to grow','#4ade80'),2200);
+  setTimeout(()=>gToast('💰 Smash debris for salvage — shelters need 5 build actions x3 (SDG 1)','#fcd34d'),4000);
+  setTimeout(()=>gToast('🌿 PLANT INVADERS spotted! Green zombies will destroy your crops!','#ef4444'),6000);
+  setTimeout(()=>gToast('🏪 After harvest press E near the Community Barn to store food (SDG 4)','#fde68a'),8000);
+  setTimeout(()=>gToast('🤒 Find sick survivors — stand close and press F to heal (SDG 3)','#86efac'),10000);
+}
+window.initGame=initGame;
+</script>
+</body>
+</html>
