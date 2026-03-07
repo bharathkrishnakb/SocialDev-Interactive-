@@ -202,6 +202,54 @@ canvas#gc { display:block;position:absolute;top:0;left:0;image-rendering:pixelat
 .g-btn:hover { transform:translateY(-2px);box-shadow:0 6px 30px rgba(196,72,32,.5); }
 .g-btn.alt { background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--fog); }
 .g-btn.alt:hover { background:rgba(255,255,255,.1);color:var(--white); }
+
+/* ── PAUSE BUTTON ── */
+#pause-btn {
+  display:block; width:100%; margin-top:7px;
+  background:rgba(212,168,48,.1); border:1px solid rgba(212,168,48,.28);
+  border-radius:3px; padding:7px 0;
+  font-family:'Bebas Neue'; font-size:14px; letter-spacing:.18em;
+  color:rgba(212,180,100,.75); cursor:pointer; transition:all .18s;
+}
+#pause-btn:hover { background:rgba(212,168,48,.2); color:#fde68a; border-color:rgba(212,168,48,.55); }
+/* ── PAUSE OVERLAY ── */
+#pause-overlay {
+  position:absolute; inset:0; z-index:900;
+  background:rgba(3,5,2,.86); backdrop-filter:blur(7px);
+  display:none; align-items:center; justify-content:center;
+}
+#pause-overlay.vis { display:flex; }
+#pause-card {
+  background:linear-gradient(160deg,rgba(12,16,9,.98),rgba(7,10,5,.98));
+  border:1px solid rgba(212,168,48,.25); border-radius:6px;
+  padding:38px 48px; text-align:center; max-width:400px; width:90%;
+  box-shadow:0 0 60px rgba(180,110,10,.1);
+}
+#pause-title {
+  font-family:'Rubik Dirt'; font-size:54px; color:#e8a820; line-height:1;
+  text-shadow:0 0 40px rgba(220,130,10,.35); margin-bottom:4px;
+}
+#pause-sub {
+  font-family:'Share Tech Mono'; font-size:8px; letter-spacing:.38em;
+  color:rgba(200,185,150,.28); margin-bottom:28px;
+}
+#pause-keys { display:flex; flex-direction:column; gap:9px; margin-bottom:30px; text-align:left; }
+.pk-row { display:flex; align-items:center; gap:14px; }
+.pk-key {
+  font-family:'Share Tech Mono'; font-size:9px; letter-spacing:.06em;
+  background:rgba(212,168,48,.09); border:1px solid rgba(212,168,48,.22);
+  border-radius:3px; padding:4px 0; color:#c8a030;
+  min-width:88px; text-align:center; flex-shrink:0;
+}
+.pk-desc { font-family:'Barlow'; font-size:12px; color:rgba(200,185,150,.55); }
+#pause-resume-btn {
+  background:linear-gradient(135deg,#6a2208,#b82a14); border:none;
+  border-radius:3px; padding:14px 52px;
+  font-family:'Bebas Neue'; font-size:22px; letter-spacing:.16em;
+  color:#fff; cursor:pointer; transition:all .2s;
+  box-shadow:0 0 28px rgba(160,40,16,.3);
+}
+#pause-resume-btn:hover { transform:translateY(-3px); box-shadow:0 0 48px rgba(200,60,20,.5); }
 </style>
 </head>
 <body>
@@ -363,7 +411,8 @@ canvas#gc { display:block;position:absolute;top:0;left:0;image-rendering:pixelat
       <div class="key">A/D — Move</div>
       <div class="key">W/Space — Jump</div>
       <div class="key">F — Smash / Plant / Heal / Build</div>
-      <div class="key">E — Store food at 🏪 Barn (SDG 4)</div>
+      <div class="key">E — Store food at 🏪 Barn</div>
+      <button id="pause-btn" onclick="togglePause()" title="Pause [P]">⏸ PAUSE</button>
     </div>
     <div id="dpad">
       <div class="drow"><div class="dbtn" ontouchstart="inp.jump=true" ontouchend="inp.jump=false">↑</div></div>
@@ -375,6 +424,21 @@ canvas#gc { display:block;position:absolute;top:0;left:0;image-rendering:pixelat
     </div>
     <div id="g-overlay" style="display:none;align-items:center;justify-content:center;">
       <div class="g-screen" id="g-end-screen"></div>
+    </div>
+    <div id="pause-overlay">
+      <div id="pause-card">
+        <div id="pause-title">PAUSED</div>
+        <div id="pause-sub">PRESS P OR CLICK RESUME TO CONTINUE</div>
+        <div id="pause-keys">
+          <div class="pk-row"><span class="pk-key">A / D</span><span class="pk-desc">Move</span></div>
+          <div class="pk-row"><span class="pk-key">W / SPACE</span><span class="pk-desc">Jump</span></div>
+          <div class="pk-row"><span class="pk-key">F</span><span class="pk-desc">Smash · Plant · Heal · Build</span></div>
+          <div class="pk-row"><span class="pk-key">E</span><span class="pk-desc">Store food in barn</span></div>
+          <div class="pk-row"><span class="pk-key">1 · 2 · 3</span><span class="pk-desc">Answer Elder Mara</span></div>
+          <div class="pk-row"><span class="pk-key">P</span><span class="pk-desc">Pause / Resume</span></div>
+        </div>
+        <button id="pause-resume-btn" onclick="togglePause()">▶  RESUME</button>
+      </div>
     </div>
   </div>
 </div>
@@ -616,25 +680,31 @@ const NPC={
     {id:7,trigger:'neardone', text:"You have done what no soldier could — you built instead of destroyed. The extraction point is near. We will rebuild the ruined town next.", spoken:false},
     {id:8,trigger:'enterShelter',text:"I will rest inside — but I will return when the last threat is gone. Keep building.", spoken:false},
   ],
-  // ── Post-combat trivia: Mara approaches player and asks SDG questions ──
+  // ── Post-combat story conversation — casual, no right/wrong, just talk ──
   trivia:[
     {
-      q:"The bioweapon spread because nations hoarded vaccines. Which SDG does this violate most?",
-      opts:["SDG 3 — Good Health for All","SDG 9 — Industry & Innovation","SDG 13 — Climate Action"],
-      correct:0,
-      resp:"Exactly. SDG 3 guarantees universal health access. Vaccine hoarding is its direct opposite — and it costs millions of lives every crisis."
+      q:"I have been watching from that shelter window. You know, I was a farmer here before the wars. Lost three seasons to the shelling. When you planted those first seeds — I cried. Did it feel strange to you, farming in the middle of all this?",
+      opts:[
+        {t:"Strange? Everything about this world is strange now.", r:"Ha. Fair enough. But strange things take root too. I have seen it. Those crops — whatever the reason — they fed people today who would have slept hungry. That is all that matters to an old man."},
+        {t:"Honestly, it felt like the only thing that made sense.", r:"That is wisdom older than any government program. When everything falls apart, you grow things. You share things. My grandfather said the same in the famine of '89. Some truths do not age."},
+        {t:"I just followed what the mission said to do.", r:"And yet here we are, talking, while people eat. Sometimes doing the right thing for the wrong reason still changes the world. The crops do not ask why you planted them."}
+      ]
     },
     {
-      q:"You stored food in the community barn instead of keeping it. What principle did that prove?",
-      opts:["Shared resources build resilience","Individual survival comes first","Food is a trade commodity"],
-      correct:0,
-      resp:"Collective food systems reduce hunger 40% faster than private hoarding. SDG 2 depends on this truth."
+      q:"Those four people you healed — I know all of them. Reena taught children here before the school burned. The old man with the beard is called Davan, he fixed radios. When the bioweapon first hit, people ran from the sick instead of toward them. What made you different?",
+      opts:[
+        {t:"I could not just walk past them.", r:"Most people could. Most people did. That instinct you have — to stop — that is rarer than any weapon or resource. Reena is already talking about rebuilding the school. Davan says he can fix the radio tower. One choice. Look what it starts."},
+        {t:"They were part of the mission. I needed the numbers.", r:"Maybe. But your hands were the ones that stopped. Your feet walked toward them when others walked away. The reason you tell yourself matters less than what your body did. You moved toward people in pain. That is not nothing."},
+        {t:"I did not think about it much, honestly.", r:"The best things rarely need thinking. Your instincts are good. Hold onto that. In the next zone there will be moments where thinking too long costs lives. Trust what you did here."}
+      ]
     },
     {
-      q:"The shelters you built passively slowed the infection. Which SDG covers this?",
-      opts:["SDG 11 — Sustainable Communities","SDG 6 — Clean Water","SDG 7 — Clean Energy"],
-      correct:0,
-      resp:"SDG 11. Safe, resilient settlements protect health. Infrastructure is not luxury — in a crisis, it is medicine."
+      q:"Before you go — the barn. I watched you carry the harvest there instead of keeping it for yourself. That is not common anymore. People hoard now. They learned it from the wars, from watching governments stockpile while cities starved. Why did you share it?",
+      opts:[
+        {t:"Because what good is food if the people around you are dying?", r:"Spoken like someone who has already figured out what took me decades. The communities that survived the Resource Wars were not the strongest ones. They were the ones that kept the table open. You carry that understanding now. Take it into Zone 2."},
+        {t:"The barn was the objective. I just completed it.", r:"And yet — here, in this ruined place — the barn is full. People will eat tonight. Whatever your reason, the consequence is real. That is a kind of wisdom too. Actions outlast intentions."},
+        {t:"Somebody had to start. Might as well be me.", r:"That sentence has started more good things in human history than any law or declaration. Somebody has to start. You did. That is the whole story, really. Go on, now. Zone 2 is waiting for someone like you."}
+      ]
     },
   ],
 };
@@ -647,7 +717,7 @@ const SDG_DEFS={
   1:{icon:'💰',num:'SDG 1',title:'NO POVERTY',desc:'End poverty in all its forms everywhere. Poverty is not just lack of money — it is lack of power, resources, and security.',stat:'📊 700 million people live on less than $2.15 a day'},
 };
 
-const barn = { x:2100, w:90, built:false };
+const barn = { x:2050, w:200, built:false };
 
 const floats=[], particles=[];
 function spawnFloat(x,y,txt,col){floats.push({x,y,txt,col,life:1,vy:-2});}
@@ -907,9 +977,9 @@ function updateNPC(){
     const targetX=P.x-60;
     const dx=targetX-NPC.x;
     if(Math.abs(dx)>30){
-      NPC.x+=Math.sign(dx)*1.2;
+      NPC.x+=Math.sign(dx)*2.6;
       NPC.facing=Math.sign(dx);
-      NPC.walkT++;if(NPC.walkT>6){NPC.walkF=(NPC.walkF+1)%6;NPC.walkT=0;}
+      NPC.walkT++;if(NPC.walkT>4){NPC.walkF=(NPC.walkF+1)%6;NPC.walkT=0;}
     } else {
       NPC.facing=1;
     }
@@ -917,6 +987,8 @@ function updateNPC(){
       G.triviaRespTimer--;
       if(G.triviaRespTimer<=0){
         G.triviaShowResp=false;
+        G.triviaAnswered=false; // reset so next question can be answered
+        G.triviaChoice=-1;
         G.triviaStep++;
         if(G.triviaStep>=NPC.trivia.length){
           G.triviaPhase=false;
@@ -945,9 +1017,9 @@ function updateNPC(){
     const targetX=P.x-60;
     const dx=targetX-NPC.x;
     if(Math.abs(dx)>40){
-      NPC.x+=Math.sign(dx)*1.5;
+      NPC.x+=Math.sign(dx)*3.2;
       NPC.facing=Math.sign(dx);
-      NPC.walkT++;if(NPC.walkT>7){NPC.walkF=(NPC.walkF+1)%6;NPC.walkT=0;}
+      NPC.walkT++;if(NPC.walkT>4){NPC.walkF=(NPC.walkF+1)%6;NPC.walkT=0;}
     } else {
       NPC.approachingPlayer=false;
       G.triviaPhase=true;
@@ -1280,6 +1352,28 @@ function showEnd(){
   }
 }
 
+
+// ── PAUSE SYSTEM ──
+let G_paused = false;
+function togglePause(){
+  if(!G.running && !G_paused) return; // don't pause on win/lose screen
+  if(G.win || G.lose) return;
+  G_paused = !G_paused;
+  const ov = document.getElementById('pause-overlay');
+  const btn = document.getElementById('pause-btn');
+  if(G_paused){
+    ov.classList.add('vis');
+    if(btn) btn.textContent = '▶ RESUME';
+    Object.assign(inp,{left:false,right:false,jump:false,attack:false,
+      attackPressed:false,store:false,storePressed:false,storeUsed:false});
+  } else {
+    ov.classList.remove('vis');
+    if(btn) btn.textContent = '⏸ PAUSE';
+    G.running = true;
+  }
+}
+window.togglePause = togglePause;
+
 function goToLevelSelect(){
   document.getElementById('g-overlay').style.display='none';
   document.getElementById('game-screen').style.display='none';
@@ -1311,73 +1405,123 @@ function rr(x,y,w,h,r,fill){
 function drawBG(){
   const gy=GF*H;
 
-  // Sky gradient
+  // ── SKY — warm dusk, bruised amber-green post-war sunset ──
   const sg=ctx.createLinearGradient(0,0,0,gy);
-  sg.addColorStop(0,'#0a0e14');sg.addColorStop(0.25,'#141a0e');sg.addColorStop(0.55,'#1e2210');sg.addColorStop(0.78,'#2e2a0a');sg.addColorStop(1,'#3a2808');
-  ctx.fillStyle=sg;ctx.fillRect(0,0,W,gy);
+  sg.addColorStop(0,'#0c0f08');        // deep near-black at zenith
+  sg.addColorStop(0.22,'#18200e');     // dark olive upper sky
+  sg.addColorStop(0.50,'#2a2a10');     // muted khaki mid-sky
+  sg.addColorStop(0.72,'#3c2c0c');     // warm brown near horizon
+  sg.addColorStop(1,'#4a3010');        // amber brown just above ground
+  ctx.fillStyle=sg; ctx.fillRect(0,0,W,gy);
 
-  // Horizon amber glow
-  const hg2=ctx.createLinearGradient(0,gy*.55,0,gy);
-  hg2.addColorStop(0,'rgba(0,0,0,0)');hg2.addColorStop(0.5,'rgba(180,80,10,.08)');hg2.addColorStop(1,'rgba(220,100,10,.18)');
-  ctx.fillStyle=hg2;ctx.fillRect(0,gy*.55,W,gy*.45);
+  // Broad warm horizon glow — not too vivid
+  const hg2=ctx.createLinearGradient(0,gy*0.50,0,gy);
+  hg2.addColorStop(0,'rgba(0,0,0,0)');
+  hg2.addColorStop(0.55,'rgba(160,80,14,.10)');
+  hg2.addColorStop(1,'rgba(200,100,18,.20)');
+  ctx.fillStyle=hg2; ctx.fillRect(0,gy*0.50,W,gy*0.50);
 
-  // Smoke columns
-  for(let i=0;i<4;i++){
-    const sx2=((i*600+250)-G.camX*0.12+WORLD_W*.1)%(W+400)-200;
-    const smokeH=120+i*30;
-    const sg3=ctx.createLinearGradient(sx2,gy*.12,sx2,gy*.12+smokeH);
-    sg3.addColorStop(0,'rgba(0,0,0,0)');sg3.addColorStop(0.4,`rgba(80,70,50,${0.07+i*.015})`);sg3.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=sg3;ctx.beginPath();ctx.ellipse(sx2,gy*.15+smokeH/2,14+i*4,smokeH/2,0,0,Math.PI*2);ctx.fill();
+  // Faint sun disc low on horizon — soft, non-intrusive
+  const sunX=W*0.72, sunY=gy*0.88;
+  const sunG=ctx.createRadialGradient(sunX,sunY,0,sunX,sunY,110);
+  sunG.addColorStop(0,'rgba(210,140,50,.18)');
+  sunG.addColorStop(0.4,'rgba(190,100,30,.09)');
+  sunG.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=sunG; ctx.fillRect(0,0,W,H);
+
+  // Smoke columns — more transparent, blends with sky
+  for(let i=0;i<3;i++){
+    const sx2=((i*700+300)-G.camX*0.10+WORLD_W*0.15)%(W+400)-200;
+    const smokeH=100+i*25;
+    const sg3=ctx.createLinearGradient(sx2,gy*0.10,sx2,gy*0.10+smokeH);
+    sg3.addColorStop(0,'rgba(0,0,0,0)');
+    sg3.addColorStop(0.4,`rgba(70,60,40,${0.05+i*0.01})`);
+    sg3.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=sg3;
+    ctx.beginPath();ctx.ellipse(sx2,gy*0.14+smokeH/2,12+i*3,smokeH/2,0,0,Math.PI*2);ctx.fill();
   }
 
-  // Stars
-  ctx.fillStyle='rgba(200,210,180,.35)';
-  for(let i=0;i<50;i++){
-    const stx=((i*197+G.camX*.04)%W);const sty=(i*83+20)%(gy*.45);
-    ctx.beginPath();ctx.arc(stx,sty,(i%3===0?.8:.4),0,Math.PI*2);ctx.fill();
+  // Stars — dim, fade toward horizon
+  for(let i=0;i<42;i++){
+    const stx=((i*211+G.camX*0.04)%W);
+    const sty=(i*79+14)%(gy*0.40);
+    const starAlpha=0.12+0.14*(1-sty/(gy*0.40)); // brightest at top
+    ctx.fillStyle=`rgba(210,215,185,${starAlpha})`;
+    ctx.beginPath();ctx.arc(stx,sty,(i%4===0?.8:.35),0,Math.PI*2);ctx.fill();
   }
 
-  // Distant ruins parallax
-  ctx.save();ctx.globalAlpha=0.1;
-  for(let i=0;i<10;i++){const bx=((i*340+100)-G.camX*0.18+WORLD_W*.18)%W;const bh=60+i*18;ctx.fillStyle='#1e1c10';ctx.fillRect(bx,gy-bh,50+i*8,bh);}
+  // Distant silhouette ruins — very faint, blends into sky
+  ctx.save();ctx.globalAlpha=0.07;
+  for(let i=0;i<10;i++){
+    const bx=((i*340+80)-G.camX*0.16+WORLD_W*0.15)%W;
+    const bh=50+i*14;
+    ctx.fillStyle='#1a180c';ctx.fillRect(bx,gy-bh,44+i*7,bh);
+  }
   ctx.restore();
 
-  // Fog bands
-  for(let i=0;i<2;i++){
-    const fogX=((G.frame*0.2*(i+1)*0.4+i*500)%(W+300))-150;
-    const fg2=ctx.createRadialGradient(fogX,gy*.65,0,fogX,gy*.65,180+i*70);
-    fg2.addColorStop(0,`rgba(70,160,30,${0.04+i*.012})`);fg2.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=fg2;ctx.fillRect(0,0,W,H);
-  }
+  // Ground-level mist — thin, earthy, doesn't compete with characters
+  const mistY=gy-18;
+  const mist=ctx.createLinearGradient(0,mistY-30,0,gy+4);
+  mist.addColorStop(0,'rgba(0,0,0,0)');
+  mist.addColorStop(0.6,'rgba(50,60,30,.06)');
+  mist.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=mist; ctx.fillRect(0,mistY-30,W,50);
 
-  // Background dead trees (parallax 0.6x)
-  for(let i=0;i<28;i++){
-    const bx=(i*160+60)-G.camX*0.6;
-    if(bx<-120||bx>W+120) continue;
-    ctx.save();ctx.globalAlpha=0.5;
-    const variant=i%5;
+  // ── ANCIENT BACKGROUND TREES — muted silhouettes, far parallax ──
+  // Drawn at 0.28–0.35 alpha so they don't compete with foreground entities
+  for(let i=0;i<22;i++){
+    const bx=(i*170+40)-G.camX*0.28;
+    if(bx<-140||bx>W+140) continue;
+    const treeH=70+((i*17)%55);  // varied heights 70–125px
+    const tw=10+((i*11)%8);      // trunk width
+    ctx.save();
+    ctx.globalAlpha=0.22+((i*7)%6)*0.015; // 0.22–0.30 — barely visible
+    ctx.fillStyle='#1c1c0c';
+
+    const variant=i%4;
     if(variant===0){
-      ctx.fillStyle='#1a1808';ctx.fillRect(bx,GF*H-55,28+i%3*8,55);
-      ctx.fillStyle='#0e1004';ctx.fillRect(bx-3,GF*H-55,6,20);
+      // Tall sparse trunk with a few bare branches
+      ctx.fillRect(bx-tw/2, gy-treeH, tw, treeH);
+      ctx.strokeStyle='#1c1c0c'; ctx.lineWidth=3; ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(bx,gy-treeH*0.55);ctx.lineTo(bx-18,gy-treeH*0.72);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(bx,gy-treeH*0.68);ctx.lineTo(bx+14,gy-treeH*0.80);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(bx,gy-treeH*0.82);ctx.lineTo(bx-10,gy-treeH*0.93);ctx.stroke();
     } else if(variant===1){
-      ctx.strokeStyle='#1c1608';ctx.lineWidth=6;
-      ctx.beginPath();ctx.moveTo(bx,GF*H);ctx.lineTo(bx,GF*H-90);ctx.stroke();
-      ctx.lineWidth=3;
-      ctx.beginPath();ctx.moveTo(bx,GF*H-60);ctx.lineTo(bx-22,GF*H-80);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(bx,GF*H-50);ctx.lineTo(bx+18,GF*H-66);ctx.stroke();
+      // Wide ancient oak silhouette — canopy as a single dark shape
+      ctx.fillRect(bx-tw/2, gy-treeH, tw, treeH);
+      // Canopy blob
+      ctx.beginPath();
+      ctx.ellipse(bx, gy-treeH-16, 28+((i*5)%14), 22+((i*3)%12), 0, 0, Math.PI*2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(bx-18, gy-treeH-8, 16, 16, 0, 0, Math.PI*2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(bx+16, gy-treeH-6, 18, 14, 0, 0, Math.PI*2);
+      ctx.fill();
     } else if(variant===2){
-      ctx.fillStyle='#1a1208';
-      ctx.beginPath();ctx.moveTo(bx-8,GF*H);ctx.lineTo(bx-6,GF*H-38);ctx.lineTo(bx+2,GF*H-42);ctx.lineTo(bx+10,GF*H-35);ctx.lineTo(bx+8,GF*H);ctx.closePath();ctx.fill();
-    } else if(variant===3){
-      ctx.strokeStyle='#181408';ctx.lineWidth=5;
-      ctx.save();ctx.translate(bx,GF*H);ctx.rotate(-0.18);
-      ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,-80);ctx.stroke();
+      // Leaning dead tree
+      ctx.save();ctx.translate(bx,gy);ctx.rotate(-0.10+((i%3)-1)*0.06);
+      ctx.fillRect(-tw/2,-treeH,tw,treeH);
+      ctx.strokeStyle='#1c1c0c';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(0,-treeH*0.5);ctx.lineTo(-15,-treeH*0.68);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(0,-treeH*0.7);ctx.lineTo(12,-treeH*0.84);ctx.stroke();
       ctx.restore();
     } else {
-      for(let si=0;si<3;si++){
-        ctx.fillStyle=`rgba(20,16,8,${0.7+si*.05})`;
-        ctx.beginPath();ctx.ellipse(bx+si*12-10,GF*H-8-si*3,5,8+si*2,0.1*si,0,Math.PI*2);ctx.fill();
-      }
+      // Tall narrow cypress-like silhouette
+      ctx.beginPath();
+      ctx.moveTo(bx-8,gy);
+      ctx.lineTo(bx-4,gy-treeH*0.5);
+      ctx.lineTo(bx-10,gy-treeH*0.6);
+      ctx.lineTo(bx-2,gy-treeH*0.78);
+      ctx.lineTo(bx-6,gy-treeH*0.88);
+      ctx.lineTo(bx,gy-treeH);
+      ctx.lineTo(bx+6,gy-treeH*0.88);
+      ctx.lineTo(bx+2,gy-treeH*0.78);
+      ctx.lineTo(bx+10,gy-treeH*0.6);
+      ctx.lineTo(bx+4,gy-treeH*0.5);
+      ctx.lineTo(bx+8,gy);
+      ctx.closePath();ctx.fill();
     }
     ctx.restore();
   }
@@ -1407,28 +1551,7 @@ function drawBG(){
     ctx.strokeStyle='#a08030';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(hsx,hsy-10,18,12,0,0,Math.PI*2);ctx.stroke();
   }
 
-  // ── EXTRA DEAD TREES / STUMPS ──
-  const extraTrees=[110,290,490,680,1020,1280,1500,1780,2050,2260,2480,2720,2950,3180,3420];
-  for(let i=0;i<extraTrees.length;i++){
-    const tx=extraTrees[i]-G.camX*0.58;
-    if(tx<-80||tx>W+60) continue;
-    const ts = 0.7+((i*7)%10)*.06;
-    ctx.save();ctx.translate(tx,gy);ctx.scale(ts,ts);
-    const variant=i%5;
-    ctx.strokeStyle='rgba(40,30,12,.7)';ctx.fillStyle='rgba(40,30,12,.7)';
-    if(variant<2){
-      ctx.fillRect(-6,0,12,-28);
-    } else if(variant<4){
-      ctx.fillRect(-5,0,10,-50);
-    } else {
-      ctx.lineWidth=7;ctx.lineCap='round';
-      ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,-35);ctx.stroke();
-      ctx.lineWidth=4;
-      ctx.beginPath();ctx.moveTo(0,-35);ctx.lineTo(-14,-56);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(0,-35);ctx.lineTo(12,-52);ctx.stroke();
-    }
-    ctx.restore();
-  }
+  // (extra stumps removed — bg trees handle all background foliage)
 
   // ── FARM PATCHES ──
   const patchGroups=[0,1,2];
@@ -1556,165 +1679,172 @@ function drawBG(){
     }
   }
 
-  // ── COMMUNITY BARN — Mexican Hacienda Style ──
+  // ── COMMUNITY BARN — Wide vintage wooden barn ──
   const barnSX = barn.x - G.camX;
-  const nearBarn = Math.abs(P.x+P.w/2 - barn.x - barn.w/2) < 100;
-  const BW = 130, BH = 180; // taller barn
-  const bx = barnSX, bTop = gy - BH;
+  const nearBarn = Math.abs(P.x+P.w/2 - barn.x - barn.w/2) < 110;
+  // Wide barn: 200px wide, 110px body, classic proportions
+  const BW=200, BH=110;
+  const bx=barnSX, bTop=gy-BH;
+  const bcx=bx+BW/2; // barn center x
 
-  // Adobe foundation
-  ctx.fillStyle='#6b3a1f';
-  ctx.fillRect(bx-8, gy-8, BW+16, 8);
-  // Shadow stripe on base
-  ctx.fillStyle='rgba(0,0,0,.3)';
-  ctx.fillRect(bx, gy-BH, 6, BH);
-  ctx.fillRect(bx+BW-6, gy-BH, 6, BH);
-
-  // Main adobe walls — terracotta gradient
-  const wallGrad=ctx.createLinearGradient(bx,bTop,bx+BW,bTop);
-  wallGrad.addColorStop(0,'#c1622a');
-  wallGrad.addColorStop(0.35,'#d4743a');
-  wallGrad.addColorStop(0.65,'#c86030');
-  wallGrad.addColorStop(1,'#a84820');
-  ctx.fillStyle=wallGrad;
-  rr(bx, bTop, BW, BH, 3, wallGrad);
-
-  // Adobe plaster texture stripes
-  ctx.strokeStyle='rgba(180,80,30,.18)';ctx.lineWidth=1;
-  for(let hy=bTop+14;hy<gy-10;hy+=14){
-    ctx.beginPath();ctx.moveTo(bx+4,hy);ctx.lineTo(bx+BW-4,hy);ctx.stroke();
+  // ── FOUNDATION — stone base ──
+  ctx.fillStyle='#4a3a1c';
+  ctx.fillRect(bx-6, gy-10, BW+12, 10);
+  // foundation stones texture
+  ctx.strokeStyle='rgba(60,45,20,.6)'; ctx.lineWidth=1;
+  for(let fi=0;fi<6;fi++){
+    ctx.strokeRect(bx-4+fi*34, gy-9, 32, 9);
   }
-  // Vertical crack marks
-  ctx.strokeStyle='rgba(100,40,10,.15)';ctx.lineWidth=1;
-  [22,54,90,110].forEach(cx2=>{
-    ctx.beginPath();ctx.moveTo(bx+cx2,bTop+20);ctx.lineTo(bx+cx2+4,bTop+50);ctx.moveTo(bx+cx2+2,bTop+55);ctx.lineTo(bx+cx2-2,bTop+90);ctx.stroke();
+
+  // ── MAIN BARN WALLS — weathered dark red boards ──
+  const wallG=ctx.createLinearGradient(bx,bTop,bx+BW,bTop);
+  wallG.addColorStop(0,'#5a1c0c');
+  wallG.addColorStop(0.08,'#7a2810');
+  wallG.addColorStop(0.5,'#6e2410');
+  wallG.addColorStop(0.92,'#7a2810');
+  wallG.addColorStop(1,'#5a1c0c');
+  ctx.fillStyle=wallG;
+  ctx.fillRect(bx, bTop, BW, BH);
+
+  // Vertical board planks — the core texture
+  ctx.strokeStyle='rgba(30,10,4,.55)'; ctx.lineWidth=2;
+  for(let pl=bx+14; pl<bx+BW-8; pl+=14){
+    ctx.beginPath();ctx.moveTo(pl,bTop+2);ctx.lineTo(pl,gy-2);ctx.stroke();
+  }
+  // Horizontal crossbrace boards — aged wood feel
+  ctx.strokeStyle='rgba(30,10,4,.35)'; ctx.lineWidth=1;
+  for(let hl=bTop+16; hl<gy-12; hl+=18){
+    ctx.beginPath();ctx.moveTo(bx+4,hl);ctx.lineTo(bx+BW-4,hl);ctx.stroke();
+  }
+  // Weathering: faint paint-fade patches
+  ctx.fillStyle='rgba(0,0,0,.12)';
+  [[bx+20,bTop+22,40,30],[bx+140,bTop+35,35,25],[bx+75,bTop+60,28,20]].forEach(([wx,wy,ww,wh])=>{
+    ctx.fillRect(wx,wy,ww,wh);
   });
 
-  // Large arched doorway
-  const doorW=46, doorH=68;
-  const doorX=bx+BW/2-doorW/2, doorY=gy-doorH;
-  ctx.fillStyle='#1a0a04';
+  // ── DIAGONAL X BRACES — classic barn look on each side ──
+  ctx.strokeStyle='rgba(35,12,4,.65)'; ctx.lineWidth=3; ctx.lineCap='round';
+  // Left panel brace
+  ctx.beginPath();ctx.moveTo(bx+8,bTop+8);ctx.lineTo(bx+82,gy-8);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(bx+82,bTop+8);ctx.lineTo(bx+8,gy-8);ctx.stroke();
+  // Right panel brace
+  ctx.beginPath();ctx.moveTo(bx+118,bTop+8);ctx.lineTo(bx+BW-8,gy-8);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(bx+BW-8,bTop+8);ctx.lineTo(bx+118,gy-8);ctx.stroke();
+
+  // ── DOUBLE DOOR — wide, centered ──
+  const dW=72, dH=BH-8;
+  const dL=bcx-dW/2, dT=bTop+8;
+  // Door opening dark interior
+  ctx.fillStyle='#130800';
+  ctx.fillRect(dL,dT,dW,dH);
+  // Door frame
+  ctx.strokeStyle='#8a5020'; ctx.lineWidth=3;
+  ctx.strokeRect(dL-2,dT-2,dW+4,dH+2);
+  // Left door panel (slightly ajar look — diagonal plank detail)
+  ctx.fillStyle='#4a1c08';ctx.fillRect(dL,dT,dW/2-1,dH);
+  ctx.fillStyle='#3e1606';ctx.fillRect(dL+dW/2+1,dT,dW/2-1,dH);
+  // Door board seams
+  ctx.strokeStyle='rgba(20,6,2,.7)'; ctx.lineWidth=1.5;
+  for(let dp=dL+10; dp<dL+dW/2-2; dp+=10){
+    ctx.beginPath();ctx.moveTo(dp,dT+4);ctx.lineTo(dp,dT+dH-4);ctx.stroke();
+  }
+  for(let dp=dL+dW/2+8; dp<dL+dW-4; dp+=10){
+    ctx.beginPath();ctx.moveTo(dp,dT+4);ctx.lineTo(dp,dT+dH-4);ctx.stroke();
+  }
+  // Horizontal Z-brace on each door
+  ctx.strokeStyle='rgba(140,80,20,.8)'; ctx.lineWidth=2.5;
+  // Left door Z
+  ctx.beginPath();ctx.moveTo(dL+3,dT+20);ctx.lineTo(dL+dW/2-4,dT+20);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(dL+3,dT+dH-22);ctx.lineTo(dL+dW/2-4,dT+dH-22);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(dL+3,dT+20);ctx.lineTo(dL+dW/2-4,dT+dH-22);ctx.stroke();
+  // Right door Z
+  ctx.beginPath();ctx.moveTo(dL+dW/2+4,dT+20);ctx.lineTo(dL+dW-3,dT+20);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(dL+dW/2+4,dT+dH-22);ctx.lineTo(dL+dW-3,dT+dH-22);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(dL+dW-3,dT+20);ctx.lineTo(dL+dW/2+4,dT+dH-22);ctx.stroke();
+  // Door handles — iron
+  ctx.fillStyle='#3a3020';
+  rr(dL+dW/2-8,dT+dH/2-5,7,10,2,'#3a3020');
+  rr(dL+dW/2+2,dT+dH/2-5,7,10,2,'#3a3020');
+  // Center door split
+  ctx.strokeStyle='#160800'; ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(bcx,dT);ctx.lineTo(bcx,dT+dH);ctx.stroke();
+
+  // ── LOFT WINDOW — small square above doors ──
+  const lwW=24,lwH=18,lwX=bcx-lwW/2,lwY=bTop+6;
+  ctx.fillStyle='rgba(14,9,3,.9)';ctx.fillRect(lwX,lwY,lwW,lwH);
+  ctx.strokeStyle='#7a4820';ctx.lineWidth=2;ctx.strokeRect(lwX,lwY,lwW,lwH);
+  // Window cross
+  ctx.strokeStyle='#5a3010';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(bcx,lwY+2);ctx.lineTo(bcx,lwY+lwH-2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(lwX+3,lwY+lwH/2);ctx.lineTo(lwX+lwW-3,lwY+lwH/2);ctx.stroke();
+
+  // ── GABLE ROOF — classic steep A-frame, one solid piece ──
+  const roofPeak=bTop-58;
+  // Roof main fill
+  const roofG=ctx.createLinearGradient(bx,roofPeak,bx+BW,bTop);
+  roofG.addColorStop(0,'#3a1a06');
+  roofG.addColorStop(0.4,'#5c2c10');
+  roofG.addColorStop(0.6,'#4e2408');
+  roofG.addColorStop(1,'#3a1806');
+  ctx.fillStyle=roofG;
   ctx.beginPath();
-  ctx.moveTo(doorX,gy);
-  ctx.lineTo(doorX,doorY+doorW/2);
-  ctx.arc(doorX+doorW/2,doorY+doorW/2,doorW/2,Math.PI,0);
-  ctx.lineTo(doorX+doorW,gy);
+  ctx.moveTo(bx-12,bTop);
+  ctx.lineTo(bcx,roofPeak);
+  ctx.lineTo(bx+BW+12,bTop);
   ctx.closePath();ctx.fill();
-  // Door frame carved stone
-  ctx.strokeStyle='#8a5020';ctx.lineWidth=3;
-  ctx.beginPath();
-  ctx.moveTo(doorX-3,gy);ctx.lineTo(doorX-3,doorY+doorW/2);
-  ctx.arc(doorX+doorW/2,doorY+doorW/2,doorW/2+3,Math.PI,0);
-  ctx.lineTo(doorX+doorW+3,gy);ctx.stroke();
-  // Door wood planks
-  ctx.strokeStyle='#3a1a08';ctx.lineWidth=1.5;
-  [0.25,0.5,0.75].forEach(frac=>{
-    const px2=doorX+doorW*frac;
-    ctx.beginPath();ctx.moveTo(px2,gy);ctx.lineTo(px2,doorY+doorW/2+4);ctx.stroke();
-  });
-  // Door iron hinges
-  ctx.fillStyle='#2a2a2a';
-  [[doorX+4,gy-18],[doorX+4,gy-48],[doorX+doorW-10,gy-18],[doorX+doorW-10,gy-48]].forEach(([hx,hy])=>{
-    rr(hx,hy,10,6,2,'#2a2a2a');
-  });
-
-  // Side windows — arched
-  [bx+14, bx+BW-32].forEach((wx,wi)=>{
-    const ww=22, wh=28, wtop=bTop+BH*0.25;
-    ctx.fillStyle='rgba(20,12,6,.85)';
-    ctx.beginPath();ctx.moveTo(wx,wtop+wh);ctx.lineTo(wx,wtop+ww/2);
-    ctx.arc(wx+ww/2,wtop+ww/2,ww/2,Math.PI,0);
-    ctx.lineTo(wx+ww,wtop+wh);ctx.closePath();ctx.fill();
-    ctx.strokeStyle='#7a4018';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(wx-2,wtop+wh+2);ctx.lineTo(wx-2,wtop+ww/2);
-    ctx.arc(wx+ww/2,wtop+ww/2,ww/2+2,Math.PI,0);
-    ctx.lineTo(wx+ww+2,wtop+wh+2);ctx.stroke();
-    // Window cross
-    ctx.strokeStyle='#5a3010';ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.moveTo(wx+ww/2,wtop+4);ctx.lineTo(wx+ww/2,wtop+wh);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(wx+2,wtop+ww/2+4);ctx.lineTo(wx+ww-2,wtop+ww/2+4);ctx.stroke();
-  });
-
-  // Decorative painted stripe below roofline
-  ctx.fillStyle='rgba(240,180,60,.2)';
-  ctx.fillRect(bx+4,bTop+4,BW-8,10);
-  // Painted zigzag band
-  ctx.strokeStyle='rgba(220,160,50,.45)';ctx.lineWidth=2;
-  ctx.beginPath();
-  for(let xi=0;xi<=BW-8;xi+=10){
-    ctx.lineTo(bx+4+xi,xi%20<10?bTop+4:bTop+14);
-  }ctx.stroke();
-
-  // Mexican tile roof — stepped parapet style
-  const roofH=52;
-  // Parapet wall
-  ctx.fillStyle='#b85a24';
-  rr(bx-6, bTop-roofH, BW+12, 30, 2, '#b85a24');
-  // Parapet battlement notches
-  ctx.fillStyle='#c1622a'; // sky color fill to create notches
-  for(let ni=0;ni<8;ni++){
-    const nx2=bx-4+ni*(BW+8)/7;
-    ctx.fillStyle='rgba(6,8,4,.8)';
-    rr(nx2, bTop-roofH-12, 12, 16, 2, 'rgba(6,8,4,.8)');
+  // Roof board planks
+  ctx.strokeStyle='rgba(20,8,2,.45)'; ctx.lineWidth=2;
+  for(let ri=0;ri<7;ri++){
+    const t=ri/7;
+    const lx=bx-12+(bcx-bx+12)*t, ly=bTop+(roofPeak-bTop)*t;
+    const rx=bx+BW+12-(bx+BW+12-bcx)*t, ry=ly;
+    ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(rx,ry);ctx.stroke();
   }
-  // Tiled roof slope behind parapet
-  const tileGrad=ctx.createLinearGradient(bx,bTop-roofH-24,bx+BW,bTop-roofH);
-  tileGrad.addColorStop(0,'#8a3a14');
-  tileGrad.addColorStop(0.5,'#c05020');
-  tileGrad.addColorStop(1,'#7a3010');
-  ctx.fillStyle=tileGrad;
-  ctx.beginPath();
-  ctx.moveTo(bx-16,bTop-roofH+4);
-  ctx.lineTo(bx+BW/2,bTop-roofH-52);
-  ctx.lineTo(bx+BW+16,bTop-roofH+4);
-  ctx.closePath();ctx.fill();
+  // Roof ridge cap
+  ctx.strokeStyle='#7a4818'; ctx.lineWidth=5; ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(bcx-2,roofPeak+2);ctx.lineTo(bcx+2,roofPeak+2);ctx.stroke();
+  // Eave trim board
+  ctx.strokeStyle='#8a5820'; ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(bx-14,bTop);ctx.lineTo(bx+BW+14,bTop);ctx.stroke();
+  // Fascia shadows under eave
+  ctx.fillStyle='rgba(0,0,0,.35)';
+  ctx.beginPath();ctx.moveTo(bx-14,bTop);ctx.lineTo(bcx,roofPeak-2);ctx.lineTo(bcx,roofPeak+6);ctx.lineTo(bx-12,bTop+7);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(bx+BW+14,bTop);ctx.lineTo(bcx,roofPeak-2);ctx.lineTo(bcx,roofPeak+6);ctx.lineTo(bx+BW+12,bTop+7);ctx.closePath();ctx.fill();
 
-  // Roof tile rows
-  ctx.strokeStyle='rgba(60,20,5,.4)';ctx.lineWidth=1.5;
-  for(let tr=0;tr<4;tr++){
-    const ty=bTop-roofH-10-tr*12;
-    const span=(tr+1)*22;
-    for(let tc=-span;tc<span;tc+=12){
-      ctx.beginPath();
-      ctx.arc(bx+BW/2+tc*1.4,ty,5,Math.PI,0);ctx.stroke();
-    }
-  }
+  // ── WEATHER VANE on ridge ──
+  const vx=bcx, vy=roofPeak-8;
+  ctx.strokeStyle='#a06030'; ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(vx,vy);ctx.lineTo(vx,vy-18);ctx.stroke();
+  ctx.fillStyle='#a06030';
+  ctx.beginPath();ctx.moveTo(vx-8,vy-16);ctx.lineTo(vx,vy-22);ctx.lineTo(vx,vy-14);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.arc(vx,vy-12,3,0,Math.PI*2);ctx.fill();
 
-  // Bell tower / decorative top finial
-  const ftx=bx+BW/2;
-  ctx.fillStyle='#8a3a14';
-  rr(ftx-12,bTop-roofH-68,24,18,3,'#8a3a14');
-  ctx.fillStyle='#c05020';
-  ctx.beginPath();ctx.moveTo(ftx-14,bTop-roofH-66);ctx.lineTo(ftx,bTop-roofH-92);ctx.lineTo(ftx+14,bTop-roofH-66);ctx.closePath();ctx.fill();
-  // Cross silhouette on top
-  ctx.fillStyle='rgba(20,10,4,.9)';
-  ctx.fillRect(ftx-2,bTop-roofH-100,4,18);
-  ctx.fillRect(ftx-7,bTop-roofH-96,14,4);
-
-  // Food store fill indicator
+  // ── FOOD STORE fill bar — inside door darkness ──
   const storeBar=G.storedFood/G.storageTarget;
-  ctx.fillStyle='rgba(252,211,77,.06)';ctx.fillRect(bx+8,gy-56,BW-16,46);
-  ctx.fillStyle='rgba(252,211,77,.28)';ctx.fillRect(bx+8,gy-56+(46*(1-storeBar)),BW-16,46*storeBar);
+  if(storeBar>0){
+    ctx.fillStyle=`rgba(252,211,77,${0.06+storeBar*0.08})`;
+    ctx.fillRect(dL+2,dT+dH*(1-storeBar),dW-4,dH*storeBar);
+  }
 
-  // Near-barn glow
+  // ── NEAR GLOW ──
   if(nearBarn){
-    ctx.shadowColor='#fcd34d';ctx.shadowBlur=24;
-    ctx.strokeStyle='rgba(252,211,77,.55)';ctx.lineWidth=2;
+    ctx.shadowColor='#fcd34d'; ctx.shadowBlur=22;
+    ctx.strokeStyle='rgba(252,211,77,.5)'; ctx.lineWidth=2;
     ctx.strokeRect(bx-4,bTop-4,BW+8,BH+4);
     ctx.shadowBlur=0;
   }
 
-  // Labels
-  const labelY=bTop-roofH-110;
+  // ── LABELS ──
+  const labelY=roofPeak-20;
   ctx.font='bold 11px "Share Tech Mono"';
   ctx.fillStyle=nearBarn?'#fde68a':'rgba(252,211,77,.55)';ctx.textAlign='center';
-  ctx.fillText('COMMUNITY BARN',bx+BW/2,labelY);
+  ctx.fillText('COMMUNITY BARN',bcx,labelY);
   ctx.font='bold 9px "Share Tech Mono"';ctx.fillStyle='rgba(252,211,77,.65)';
-  ctx.fillText(nearBarn?'[E] STORE FOOD':'SDG 4 · Food Store',bx+BW/2,labelY+14);
+  ctx.fillText(nearBarn?'[E] STORE FOOD':'SDG 4 · Food Store',bcx,labelY+13);
   ctx.font='8px "Share Tech Mono"';ctx.fillStyle='rgba(212,200,168,.45)';
-  ctx.fillText(`${G.storedFood}/${G.storageTarget} stored`,bx+BW/2,labelY+26);
+  ctx.fillText(`${G.storedFood}/${G.storageTarget} stored`,bcx,labelY+25);
 
-    // Exit zone
+      // Exit zone
   const ex=WORLD_W-240-G.camX;
   const allDone2=G.crops>=G.cropsTarget&&G.survivors>=G.survivorsTarget&&G.shelters>=G.sheltersTarget&&G.salvage>=G.salvageTarget&&G.storedFood>=G.storageTarget;
   ctx.save();ctx.globalAlpha=allDone2?0.9:0.25;
@@ -2100,125 +2230,151 @@ function drawNPC(){
 function _drawTriviaBox(nx, gy){
   if(G.triviaStep>=NPC.trivia.length) return;
   const q=NPC.trivia[G.triviaStep];
-  const BW=320, PAD=14;
-  const screenNx=Math.max(BW/2+10, Math.min(W-BW/2-10, nx));
+  const BW=330, PAD=14;
+  // Clamp box so it never goes off-screen
+  const screenNx=Math.max(BW/2+12, Math.min(W-BW/2-12, nx));
 
   ctx.save();
 
   if(G.triviaShowResp){
-    // ── RESPONSE box ──
-    const resp=q.correct===G.triviaChoice?
-      '✅ CORRECT! '+q.resp :
-      '✗ Not quite. '+q.resp;
+    // ── MARA'S RESPONSE — warm amber, no right/wrong colouring ──
+    const chosenOpt = q.opts[G.triviaChoice];
+    const respText = chosenOpt ? chosenOpt.r : '';
     ctx.font='13px "Barlow",sans-serif';
-    const rWords=resp.split(' ');
+    const rWords=respText.split(' ');
     const rLines=[];let rc='';
-    for(const w of rWords){const t=rc?rc+' '+w:w;if(ctx.measureText(t).width>BW-PAD*2){rLines.push(rc);rc=w;}else rc=t;}
+    for(const w of rWords){
+      const t=rc?rc+' '+w:w;
+      if(ctx.measureText(t).width>BW-PAD*2){rLines.push(rc);rc=w;}
+      else rc=t;
+    }
     if(rc)rLines.push(rc);
-    const rLH=18, rBH=rLines.length*rLH+PAD*2+24;
-    const bTop=gy-340;
+
+    const rLH=19, rBH=rLines.length*rLH+PAD*2+30;
+    const bTop=gy-380;
     const bLeft=screenNx-BW/2;
-    // glow
-    ctx.shadowColor=G.triviaChoice===q.correct?'rgba(74,222,128,.4)':'rgba(239,68,68,.4)';
-    ctx.shadowBlur=18;
-    rr(bLeft,bTop,BW,rBH,8,G.triviaChoice===q.correct?'rgba(10,30,14,.97)':'rgba(30,8,8,.97)');
+
+    // Warm amber box — same as speech bubbles, no green/red judgement
+    ctx.shadowColor='rgba(200,140,20,.2)'; ctx.shadowBlur=14;
+    rr(bLeft,bTop,BW,rBH,8,'rgba(8,7,3,.97)');
     ctx.shadowBlur=0;
-    ctx.strokeStyle=G.triviaChoice===q.correct?'rgba(74,222,128,.6)':'rgba(239,68,68,.5)';
-    ctx.lineWidth=1.5;ctx.strokeRect(bLeft,bTop,BW,rBH);
+    ctx.strokeStyle='rgba(212,168,48,.5)'; ctx.lineWidth=1.5;
+    ctx.strokeRect(bLeft,bTop,BW,rBH);
+
+    // Header: just Mara's name label
     ctx.font='bold 9px "Share Tech Mono"';
-    ctx.fillStyle=G.triviaChoice===q.correct?'#4ade80':'#ef4444';
-    ctx.textAlign='left';
-    ctx.fillText(G.triviaChoice===q.correct?'CORRECT ANSWER':'LEARN FROM THIS',bLeft+PAD,bTop+15);
-    ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=1;
+    ctx.fillStyle='#d4a830'; ctx.textAlign='left';
+    ctx.fillText('ELDER MARA', bLeft+PAD, bTop+15);
+    // subtle divider
+    ctx.strokeStyle='rgba(212,168,48,.2)'; ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(bLeft+PAD,bTop+20);ctx.lineTo(bLeft+BW-PAD,bTop+20);ctx.stroke();
+
+    // Response text
     ctx.font='13px "Barlow",sans-serif';
-    ctx.fillStyle='rgba(230,220,195,.9)';ctx.textAlign='center';
+    ctx.fillStyle='rgba(232,220,190,.9)'; ctx.textAlign='center';
     rLines.forEach((ln,i)=>ctx.fillText(ln,screenNx,bTop+20+PAD+(i+1)*rLH));
-    // timer bar
-    const prog=G.triviaRespTimer/240;
-    ctx.fillStyle='rgba(255,255,255,.08)';ctx.fillRect(bLeft+PAD,bTop+rBH-10,BW-PAD*2,5);
-    ctx.fillStyle=G.triviaChoice===q.correct?'#4ade80':'#f97316';
-    ctx.fillRect(bLeft+PAD,bTop+rBH-10,(BW-PAD*2)*prog,5);
-    // tail
-    ctx.fillStyle=G.triviaChoice===q.correct?'rgba(10,30,14,.97)':'rgba(30,8,8,.97)';
+
+    // Thin progress bar — amber, just shows time remaining, no colour meaning
+    const prog=G.triviaRespTimer/260;
+    ctx.fillStyle='rgba(212,168,48,.12)';
+    ctx.fillRect(bLeft+PAD,bTop+rBH-10,BW-PAD*2,4);
+    ctx.fillStyle='rgba(212,168,48,.55)';
+    ctx.fillRect(bLeft+PAD,bTop+rBH-10,(BW-PAD*2)*prog,4);
+
+    // Tail pointing down toward NPC
+    ctx.fillStyle='rgba(8,7,3,.97)';
     ctx.beginPath();ctx.moveTo(screenNx-8,gy-200);ctx.lineTo(screenNx,gy-186);ctx.lineTo(screenNx+8,gy-200);ctx.closePath();ctx.fill();
+    ctx.strokeStyle='rgba(212,168,48,.4)'; ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(screenNx-8,gy-200);ctx.lineTo(screenNx,gy-186);ctx.lineTo(screenNx+8,gy-200);ctx.stroke();
+
   } else {
-    // ── QUESTION + OPTIONS box ──
+    // ── QUESTION + OPTIONS ──
     ctx.font='bold 13px "Barlow",sans-serif';
     const qWords=q.q.split(' ');
     const qLines=[];let qc='';
-    for(const w of qWords){const t=qc?qc+' '+w:w;if(ctx.measureText(t).width>BW-PAD*2){qLines.push(qc);qc=w;}else qc=t;}
+    for(const w of qWords){
+      const t=qc?qc+' '+w:w;
+      if(ctx.measureText(t).width>BW-PAD*2){qLines.push(qc);qc=w;}
+      else qc=t;
+    }
     if(qc)qLines.push(qc);
-    const qLH=18;
-    const optH=36;
-    const totalH=qLines.length*qLH+PAD*2+20+q.opts.length*optH+8;
-    const bTop=gy-420;
+
+    const qLH=19;
+    const optH=38;
+    const totalH=qLines.length*qLH+PAD*2+22+q.opts.length*optH+14;
+    const bTop=gy-430;
     const bLeft=screenNx-BW/2;
 
-    // Animated border pulse
-    const pulse=0.55+Math.sin(G.frame*.06)*.15;
-    ctx.shadowColor=`rgba(212,168,60,${pulse*0.5})`;
-    ctx.shadowBlur=16;
-    rr(bLeft,bTop,BW,totalH,8,'rgba(6,8,4,.97)');
+    // Pulsing amber border — warm, not alarming
+    const pulse=0.45+Math.sin(G.frame*0.055)*0.12;
+    ctx.shadowColor=`rgba(200,140,20,${pulse*0.35})`; ctx.shadowBlur=12;
+    rr(bLeft,bTop,BW,totalH,8,'rgba(7,6,3,.97)');
     ctx.shadowBlur=0;
-
-    // Header strip
-    ctx.fillStyle='rgba(200,140,30,.15)';
-    ctx.fillRect(bLeft,bTop,BW,28);
-    ctx.font='bold 9px "Share Tech Mono"';
-    ctx.fillStyle='#d4a830';ctx.textAlign='center';
-    ctx.fillText(`QUESTION ${G.triviaStep+1} OF ${NPC.trivia.length}  ·  AFTERMATH CRISIS`,screenNx,bTop+17);
-    // Border
-    ctx.strokeStyle=`rgba(212,168,60,${pulse})`;ctx.lineWidth=1.5;
+    ctx.strokeStyle=`rgba(212,168,48,${pulse})`; ctx.lineWidth=1.5;
     ctx.strokeRect(bLeft,bTop,BW,totalH);
+
     // Corner accents
-    ctx.strokeStyle='rgba(212,168,60,.8)';ctx.lineWidth=2;
+    ctx.strokeStyle='rgba(212,168,48,.65)'; ctx.lineWidth=2;
     [[bLeft,bTop,1,1],[bLeft+BW,bTop,-1,1],[bLeft,bTop+totalH,1,-1],[bLeft+BW,bTop+totalH,-1,-1]].forEach(([x,y,sx,sy])=>{
-      ctx.beginPath();ctx.moveTo(x+sx*12,y);ctx.lineTo(x,y);ctx.lineTo(x,y+sy*12);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(x+sx*10,y);ctx.lineTo(x,y);ctx.lineTo(x,y+sy*10);ctx.stroke();
     });
 
-    // Question text
-    ctx.font='bold 13px "Barlow",sans-serif';
-    ctx.fillStyle='rgba(240,228,195,.95)';ctx.textAlign='center';
-    qLines.forEach((ln,i)=>ctx.fillText(ln,screenNx,bTop+28+PAD+(i+1)*qLH));
+    // Step indicator — subtle, no "QUESTION X" pressure framing
+    ctx.font='8px "Share Tech Mono"';
+    ctx.fillStyle='rgba(212,168,48,.4)'; ctx.textAlign='center';
+    ctx.fillText(`— ${G.triviaStep+1} / ${NPC.trivia.length} —`, screenNx, bTop+13);
+
+    // Mara's question text
+    ctx.font='italic 13px "Barlow",sans-serif';
+    ctx.fillStyle='rgba(238,224,192,.92)'; ctx.textAlign='center';
+    qLines.forEach((ln,i)=>ctx.fillText(ln,screenNx,bTop+20+PAD+(i+1)*qLH));
 
     // Divider
-    const divY=bTop+28+PAD+(qLines.length)*qLH+8;
-    ctx.strokeStyle='rgba(200,150,40,.2)';ctx.lineWidth=1;
+    const divY=bTop+20+PAD+(qLines.length)*qLH+10;
+    ctx.strokeStyle='rgba(200,150,40,.15)'; ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(bLeft+PAD,divY);ctx.lineTo(bLeft+BW-PAD,divY);ctx.stroke();
 
-    // Options
+    // Options — all same neutral warm styling, no colour coding "correct"
     q.opts.forEach((opt,i)=>{
-      const oy=divY+8+i*optH;
-      const hover=false;
-      const bg=['rgba(40,80,60,.18)','rgba(30,60,90,.18)','rgba(80,40,20,.18)'][i];
-      const border=['rgba(74,222,128,.25)','rgba(96,165,250,.25)','rgba(251,146,60,.25)'][i];
-      const numCol=['#4ade80','#60a5fa','#fb923c'][i];
-      rr(bLeft+PAD/2,oy,BW-PAD,optH-4,5,bg);
-      ctx.strokeStyle=border;ctx.lineWidth=1;
-      ctx.strokeRect(bLeft+PAD/2,oy,BW-PAD,optH-4);
-      // Number badge
-      ctx.fillStyle=numCol;
-      rr(bLeft+PAD/2+4,oy+6,22,22,4,numCol.replace(')',', .15)').replace('rgb','rgba'));
-      ctx.font='bold 12px "Share Tech Mono"';
-      ctx.fillStyle=numCol;ctx.textAlign='center';
-      ctx.fillText(i+1,bLeft+PAD/2+15,oy+21);
-      // Option text
-      ctx.font='12px "Barlow",sans-serif';
-      ctx.fillStyle='rgba(230,218,190,.9)';ctx.textAlign='left';
-      ctx.fillText(opt,bLeft+PAD/2+32,oy+21);
+      const oy=divY+6+i*optH;
+      // Very subtle tint differences purely for readability, not meaning
+      const bgAlpha=0.06+i*0.02;
+      rr(bLeft+PAD/2,oy,BW-PAD,optH-5,5,`rgba(200,140,30,${bgAlpha})`);
+      ctx.strokeStyle=`rgba(200,140,30,${0.18+i*0.04})`; ctx.lineWidth=1;
+      ctx.strokeRect(bLeft+PAD/2,oy,BW-PAD,optH-5);
+
+      // Number key
+      ctx.font='bold 11px "Share Tech Mono"';
+      ctx.fillStyle='rgba(212,168,48,.8)'; ctx.textAlign='center';
+      ctx.fillText(i+1, bLeft+PAD/2+14, oy+22);
+
+      // Option text — same colour for all, italic feels more like speech
+      ctx.font='italic 12px "Barlow",sans-serif';
+      ctx.fillStyle='rgba(228,215,185,.88)'; ctx.textAlign='left';
+      // word-wrap option text if long
+      const oWords=opt.t.split(' ');
+      let ol='', olines=[];
+      for(const w of oWords){
+        const t=ol?ol+' '+w:w;
+        if(ctx.measureText(t).width>BW-PAD-42){olines.push(ol);ol=w;}
+        else ol=t;
+      }
+      if(ol)olines.push(ol);
+      olines.forEach((ol2,li)=>ctx.fillText(ol2,bLeft+PAD/2+30,oy+16+li*15));
     });
 
-    // Key hint
-    ctx.font='9px "Share Tech Mono"';ctx.fillStyle='rgba(200,185,150,.3)';ctx.textAlign='center';
-    ctx.fillText('PRESS  1 · 2 · 3  TO ANSWER',screenNx,bTop+totalH-6);
+    // Key hint — casual, not test-like
+    ctx.font='8px "Share Tech Mono"';
+    ctx.fillStyle='rgba(200,185,150,.28)'; ctx.textAlign='center';
+    ctx.fillText('PRESS  1 · 2 · 3  TO RESPOND',screenNx,bTop+totalH-6);
 
     // Tail
-    ctx.fillStyle='rgba(6,8,4,.97)';
+    ctx.fillStyle='rgba(7,6,3,.97)';
     ctx.beginPath();ctx.moveTo(screenNx-8,gy-200);ctx.lineTo(screenNx,gy-186);ctx.lineTo(screenNx+8,gy-200);ctx.closePath();ctx.fill();
-    ctx.strokeStyle='rgba(212,168,60,.5)';ctx.lineWidth=1;
+    ctx.strokeStyle='rgba(212,168,48,.4)'; ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(screenNx-8,gy-200);ctx.lineTo(screenNx,gy-186);ctx.lineTo(screenNx+8,gy-200);ctx.stroke();
   }
+
   ctx.restore();
 }
 
@@ -2276,6 +2432,7 @@ window.addEventListener('keydown',e=>{
   const k=e.key;
 
   // Trivia answer keys
+  if(k==='p'||k==='P'){togglePause();e.preventDefault();return;}
   if(G.triviaPhase && !G.triviaShowResp){
     const idx=k==='1'?0:k==='2'?1:k==='3'?2:-1;
     if(idx>=0){
@@ -2284,9 +2441,9 @@ window.addEventListener('keydown',e=>{
         G.triviaAnswered=true;
         G.triviaChoice=idx;
         G.triviaShowResp=true;
-        G.triviaRespTimer=240; // 4s to read response
-        G.score+=idx===q.correct?300:100;
-        if(idx===q.correct) spawnParticles(P.x-G.camX,P.y-60,'#4ade80',18,5);
+        G.triviaRespTimer=260; // ~4.3s to read Mara's response
+        G.score+=120; // same score regardless of choice
+        spawnParticles(P.x-G.camX,P.y-60,'#d4a830',10,3);
       }
       e.preventDefault(); return;
     }
@@ -2466,6 +2623,7 @@ function resetGame(){
   function gameLoop(){
     if(_loopId !== myLoopId) return; // stale loop: stop silently
     requestAnimationFrame(gameLoop);
+    if(G_paused) return;
     if(!G.running) return;
     G.frame++;
 
