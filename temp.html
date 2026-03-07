@@ -60,12 +60,10 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;b
 .lvl-connector{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;}
 .lvl-dot{width:20px;height:20px;border-radius:50%;border:2px solid #b07820;background:#0d1408;box-shadow:0 0 18px rgba(200,140,20,.5);position:relative;z-index:2;flex-shrink:0;}
 .lvl-dot.active{background:#c08818;box-shadow:0 0 28px #c08818,0 0 55px rgba(200,140,20,.35);}
-.lvl-dot.locked{border-color:rgba(255,255,255,.28);box-shadow:none;background:rgba(255,255,255,.06);}
 .lvl-num-tag{font-family:'Share Tech Mono';font-size:7px;letter-spacing:.2em;color:rgba(200,185,150,.22);}
 .lvl-card{background:rgba(10,13,8,.94);border:1.5px solid rgba(200,150,40,.1);border-radius:4px;padding:24px 26px;transition:all .25s;position:relative;overflow:visible;}
 .lvl-card.unlocked{border-color:rgba(200,150,40,.35);cursor:pointer;}
 .lvl-card.unlocked:hover{border-color:#c08818;transform:translateY(-4px);box-shadow:0 12px 40px rgba(200,130,10,.2);}
-.lvl-card.locked-card{opacity:.72;cursor:not-allowed;filter:grayscale(.25);}
 .lvl-card.unlocked::before,.lvl-card.unlocked::after{content:'';position:absolute;width:16px;height:16px;border-color:rgba(200,150,40,.4);border-style:solid;}
 .lvl-card.unlocked::before{top:-1px;left:-1px;border-width:2px 0 0 2px;}
 .lvl-card.unlocked::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0;}
@@ -85,7 +83,6 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;b
 .sdg-ht-tip em{display:block;margin-top:4px;font-size:10px;color:rgba(200,185,150,.35);font-style:normal;}
 .lvl-play{background:linear-gradient(135deg,#7a2808,#c03018);border:none;border-radius:2px;padding:11px 28px;font-family:'Bebas Neue';font-size:18px;letter-spacing:.12em;color:#fff;cursor:pointer;transition:all .2s;display:inline-block;}
 .lvl-play:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(180,40,20,.5);}
-.lvl-lock-btn{display:inline-flex;align-items:center;gap:7px;font-family:'Share Tech Mono';font-size:9px;letter-spacing:.12em;color:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.18);border-radius:2px;padding:8px 16px;background:rgba(255,255,255,.04);cursor:not-allowed;}
 .sdg-mission-strip{width:100%;max-width:960px;margin:0 auto 0;padding:0 24px 60px;border-top:1px solid rgba(255,255,255,.04);padding-top:48px;}
 .sms-label{font-family:'Share Tech Mono';font-size:9px;letter-spacing:.35em;color:#a03020;margin-bottom:14px;}
 .sms-title{font-family:'Bebas Neue';font-size:clamp(22px,4vw,42px);letter-spacing:.07em;color:#e8e0d0;margin-bottom:8px;}
@@ -236,11 +233,11 @@ canvas#gc{display:block;position:absolute;top:0;left:0;image-rendering:pixelated
     </div>
     <div class="lvl-row">
       <div class="lvl-empty"></div>
-      <div class="lvl-connector"><div class="lvl-dot locked" id="z2-dot"></div><div class="lvl-num-tag">ZONE 2</div></div>
-      <div class="lvl-card locked-card" id="z2-card">
-        <div class="lvl-status lock-status" id="z2-status">QUARANTINED · COMPLETE ZONE 1 TO UNLOCK</div>
+      <div class="lvl-connector"><div class="lvl-dot active" id="z2-dot"></div><div class="lvl-num-tag">ZONE 2</div></div>
+      <div class="lvl-card unlocked" id="z2-card" onclick="enterZone2()">
+        <div class="lvl-status active-status" id="z2-status">ZONE ACTIVE · UNLOCKED · PLAYABLE</div>
         <div class="lvl-bignum">02</div>
-        <div class="lvl-title lock-title" id="z2-title">THE RUINED TOWN</div>
+        <div class="lvl-title active-title" id="z2-title">THE RUINED TOWN</div>
         <p class="lvl-desc">Mine iron from war caves, build an armoury, craft weapons, trade with a survivor merchant, power a windmill from electrical salvage — and defend the shelters you built in Zone 1.</p>
         <div class="sdg-tags">
           <span class="sdg-ht" style="background:rgba(100,120,140,.1);border:1px solid rgba(100,140,160,.22);color:rgba(148,163,184,.55);">SDG 8 · Decent Work<span class="sdg-ht-tip"><strong>SDG 8</strong>Mine &amp; trade iron fairly. Build an economy from rubble.<em>2 billion people work with no protections.</em></span></span>
@@ -248,23 +245,24 @@ canvas#gc{display:block;position:absolute;top:0;left:0;image-rendering:pixelated
           <span class="sdg-ht" style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:rgba(134,239,172,.45);">SDG 12 · Responsible Use<span class="sdg-ht-tip"><strong>SDG 12</strong>Recycle war debris. Store food sustainably.<em>2.1 billion tonnes of waste generated yearly.</em></span></span>
           <span class="sdg-ht" style="background:rgba(252,211,77,.08);border:1px solid rgba(252,211,77,.2);color:rgba(253,225,130,.45);">SDG 7 · Clean Energy<span class="sdg-ht-tip"><strong>SDG 7</strong>Start the windmill with electrical salvage.<em>675M people have no electricity.</em></span></span>
         </div>
-        <button class="lvl-lock-btn" id="z2-btn" onclick="if(window.zone2Unlocked)enterZone2()">🔒 LOCKED</button>
+        <button class="lvl-play" id="z2-btn" onclick="enterZone2();event.stopPropagation();">▶ ENTER ZONE 2</button>
       </div>
     </div>
     <div class="lvl-row">
-      <div class="lvl-card locked-card">
-        <div class="lvl-status lock-status">QUARANTINED · COMPLETE ZONE 2 TO UNLOCK</div>
+      <div class="lvl-card unlocked" onclick="enterZone3()">
+        <div class="lvl-status active-status">ZONE ACTIVE · UNLOCKED · PLAYABLE</div>
         <div class="lvl-bignum">03</div>
-        <div class="lvl-title lock-title">THE FRACTURED NATION</div>
-        <p class="lvl-desc">Unite rival survivor factions, rebuild governance, and face a zombie general commanding a military-grade siege.</p>
+        <div class="lvl-title active-title">THE FRACTURED NATION</div>
+        <p class="lvl-desc">Restore clean water, forge a sword, defend the pump, build a lake ecosystem — and hear Elder Mara speak of equality.</p>
         <div class="sdg-tags">
-          <span class="sdg-ht" style="background:rgba(140,0,80,.1);border:1px solid rgba(180,0,110,.2);color:rgba(249,168,212,.4);">SDG 10 · Inequality<span class="sdg-ht-tip"><strong>SDG 10</strong>Bridge the gap.<em>Inequality widened in 70% of countries.</em></span></span>
-          <span class="sdg-ht" style="background:rgba(0,120,80,.1);border:1px solid rgba(0,160,100,.2);color:rgba(110,231,183,.4);">SDG 16 · Justice<span class="sdg-ht-tip"><strong>SDG 16</strong>Build institutions.<em>2B people live in conflict zones.</em></span></span>
-          <span class="sdg-ht" style="background:rgba(10,80,160,.1);border:1px solid rgba(20,120,200,.2);color:rgba(147,197,253,.4);">SDG 17 · Partnerships<span class="sdg-ht-tip"><strong>SDG 17</strong>Form alliances.<em>Global aid fell 15% in 3 years.</em></span></span>
+          <span class="sdg-ht" style="background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.25);color:rgba(125,211,252,.8);">SDG 6 · Clean Water<span class="sdg-ht-tip"><strong>SDG 6</strong>Build the pump.<em>2B people lack safe water.</em></span></span>
+          <span class="sdg-ht" style="background:rgba(236,72,153,.1);border:1px solid rgba(236,72,153,.25);color:rgba(249,168,212,.8);">SDG 5 · Equality<span class="sdg-ht-tip"><strong>SDG 5</strong>Defeat the herd.<em>"Zombies are zombies."</em></span></span>
+          <span class="sdg-ht" style="background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.18);color:rgba(165,243,252,.7);">SDG 14 · Ocean Life<span class="sdg-ht-tip"><strong>SDG 14</strong>Deploy fish.<em>30% of fish stocks overfished.</em></span></span>
+          <span class="sdg-ht" style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.18);color:rgba(253,230,138,.7);">SDG 4 · Education<span class="sdg-ht-tip"><strong>SDG 4</strong>Forge knowledge into skill.<em>244M children out of school.</em></span></span>
         </div>
-        <button class="lvl-lock-btn">🔒 LOCKED</button>
+        <button class="lvl-play" onclick="enterZone3();event.stopPropagation();">▶ ENTER ZONE 3</button>
       </div>
-      <div class="lvl-connector"><div class="lvl-dot locked"></div><div class="lvl-num-tag">ZONE 3</div></div>
+      <div class="lvl-connector"><div class="lvl-dot active"></div><div class="lvl-num-tag">ZONE 3</div></div>
       <div class="lvl-empty"></div>
     </div>
   </div>
@@ -944,8 +942,8 @@ function showEnd(){
         <div><div style="font-family:'Share Tech Mono';font-size:9px;color:#4ade80;letter-spacing:.2em;">UNLOCKED — THE RUINED TOWN</div><div style="font-size:11px;color:rgba(212,200,168,.4);margin-top:2px;">SDG 8 · Decent Work | SDG 9 · Infrastructure | SDG 12 · Responsible Use | SDG 7 · Energy</div></div>
       </div>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-        <button class="g-btn" style="background:linear-gradient(135deg,#1a4a2a,#4ade80);font-size:15px;padding:12px 28px;" onclick="window.zone2Unlocked=true;goToLevelSelect()">LEVEL SELECT</button>
-        <button class="g-btn" style="background:linear-gradient(135deg,#1a3a5a,#22d3ee);font-size:15px;padding:12px 28px;" onclick="window.zone2Unlocked=true;enterZone2()">▶ ENTER ZONE 2</button>
+        <button class="g-btn" style="background:linear-gradient(135deg,#1a4a2a,#4ade80);font-size:15px;padding:12px 28px;" onclick="goToLevelSelect()">LEVEL SELECT</button>
+        <button class="g-btn" style="background:linear-gradient(135deg,#1a3a5a,#22d3ee);font-size:15px;padding:12px 28px;" onclick="enterZone2()">▶ ENTER ZONE 2</button>
         <button class="g-btn" style="font-size:15px;padding:12px 28px;" onclick="replayZone()">REPLAY ZONE 1</button>
       </div>`;
   }else{
@@ -986,6 +984,7 @@ function goToLevelSelect(){
   document.getElementById('g-overlay').style.display='none';
   document.getElementById('game-screen').style.display='none';
   document.getElementById('g2-screen').style.display='none';
+  document.getElementById('g3-screen').style.display='none';
   document.getElementById('homepage').style.display='block';
   const intro=document.getElementById('intro-overlay');
   if(intro)intro.style.display='none';
@@ -993,26 +992,9 @@ function goToLevelSelect(){
   if(ms){ms.classList.add('visible');ms.style.display='flex';}
   G.running=false;
   G2.running=false;
-  // If zone 1 was won, unlock zone 2 card
-  if(window.zone2Unlocked)unlockZone2Card();
+  if(typeof G3!=='undefined')G3.running=false;
 }
 window.goToLevelSelect=goToLevelSelect;
-
-function unlockZone2Card(){
-  const card=document.getElementById('z2-card');
-  const btn=document.getElementById('z2-btn');
-  const dot=document.getElementById('z2-dot');
-  const status=document.getElementById('z2-status');
-  const title=document.getElementById('z2-title');
-  if(!card)return;
-  card.classList.remove('locked-card');card.classList.add('unlocked');
-  card.onclick=()=>enterZone2();
-  dot.classList.remove('locked');dot.classList.add('active');
-  status.className='lvl-status active-status';status.textContent='ZONE ACTIVE · UNLOCKED · PLAYABLE';
-  title.className='lvl-title active-title';
-  btn.className='lvl-play';btn.textContent='▶ ENTER ZONE 2';
-}
-window.unlockZone2Card=unlockZone2Card;
 
 // ═══════════════════════════════════════════════════════════════════
 // DRAWING
@@ -1796,6 +1778,9 @@ const G2={
   extractionUnlocked:false,
   attackCooldown:0,attackAnim:0,screenShake:0,
   zombieWaveTimer:0,waveSpawned:false,
+  caveWaveSpawned:false,
+  muzzleFlash:null,
+  armInteractCooldown:0,
   sdgQueue:[],
   _lcr:0,_lst:0,_lir:0,_ltr:0,_lfu:0,
 };
@@ -1818,12 +1803,18 @@ const g2Platforms=[
   {x:4150,yF:.58,w:100,type:'slab'},
 ];
 
-// Farm — 2 patches at start
+// Farm — 4 patches total (2 original + 2 new adjacent)
 const g2Farm=[
   {id:0,patch:0,x:380,state:'soil',growTimer:0,growTime:420,harvested:0},
   {id:1,patch:0,x:380+G2_PATCH_SP,state:'soil',growTimer:0,growTime:380,harvested:0},
   {id:2,patch:1,x:720,state:'soil',growTimer:0,growTime:440,harvested:0},
   {id:3,patch:1,x:720+G2_PATCH_SP,state:'soil',growTimer:0,growTime:400,harvested:0},
+  // Patch C — adjacent, slightly further right
+  {id:4,patch:2,x:940,state:'soil',growTimer:0,growTime:430,harvested:0},
+  {id:5,patch:2,x:940+G2_PATCH_SP,state:'soil',growTimer:0,growTime:460,harvested:0},
+  // Patch D — further along the path
+  {id:6,patch:3,x:1100,state:'soil',growTimer:0,growTime:410,harvested:0},
+  {id:7,patch:3,x:1100+G2_PATCH_SP,state:'soil',growTimer:0,growTime:390,harvested:0},
 ];
 const g2Barn={x:1300,w:200};
 
@@ -1845,6 +1836,12 @@ const g2Fuses=[
 ];
 // Windmill site (near barn, uses shelters from zone 1 as context)
 const g2Windmill={x:620,started:false,spinAngle:0};
+
+// Street lights along the pathway — powered by windmill
+const g2StreetLights=[
+  {x:200},{x:500},{x:830},{x:1060},{x:1400},{x:1750},{x:2050},
+  {x:3700},{x:3920},{x:4150},
+];
 
 // Debris (war wreckage on surface)
 const g2Debris=[
@@ -1923,13 +1920,28 @@ function g2Physics(){
 }
 
 // ── Actions ──
-function g2TryAttack(){
-  if(G2.attackCooldown>0||g2SdgPaused)return;
-  G2.attackCooldown=22;G2.attackAnim=12;G2.screenShake=5;
+// F key pressed — route to shoot or melee depending on gun state
+function g2TryFAction(){
+  if(g2SdgPaused)return;
+  if(G2.gunCrafted){
+    // Gun mode: shoot on its own cooldown, still allow building/farming with F
+    g2TryInteract();
+    g2TryShootGun();
+  } else {
+    // Melee mode: single cooldown for everything
+    if(G2.attackCooldown>0)return;
+    G2.attackCooldown=22;
+    g2TryInteract();
+    g2TryMelee();
+  }
+}
+
+// Interact with world objects (farm, debris, armoury, windmill) — no cooldown gate needed here
+function g2TryInteract(){
+  G2.attackAnim=12;G2.screenShake=4;
   const cx=P2.x+P2.w/2+P2.facing*32;
   const gy=G2_GF*H2;
   const inCave=P2.x>G2_CAVE_X&&P2.x<G2_CAVE_END;
-
   // Smash surface debris
   for(const d of g2Debris){
     if(d.dead)continue;
@@ -1967,6 +1979,8 @@ function g2TryAttack(){
   }
   // Build armoury
   if(!G2.armBuilt&&Math.abs(g2Arm.x-cx)<65){
+    if(G2.armInteractCooldown>0)return;
+    G2.armInteractCooldown=22;
     G2.armProgress++;
     g2Float(g2Arm.x-G2.camX,gy-65,`🏗 ${G2.armProgress}/${G2.armNeeded}`,'#fdba74');
     if(G2.armProgress>=G2.armNeeded){
@@ -1985,18 +1999,30 @@ function g2TryAttack(){
   }else if(!g2Windmill.started&&Math.abs(g2Windmill.x-cx)<70&&G2.fuses<G2.fusesTarget){
     g2Float(g2Windmill.x-G2.camX,gy-80,`Need ${G2.fusesTarget} fuses! (${G2.fuses}/${G2.fusesTarget})`,'#fbbf24');
   }
-  // Melee zombies
+}
+
+// Melee attack — only when no gun
+function g2TryMelee(){
+  const cx=P2.x+P2.w/2+P2.facing*32;
   for(const z of g2Zombies){
     if(z.dead)continue;
     if(Math.abs((z.x+16)-cx)<65){
-      const dmg=G2.gunCrafted?0:10;
-      z.hp-=dmg;z.stun=28;z.vx=P2.facing*5;
+      z.hp-=10;z.stun=28;z.vx=P2.facing*5;
       g2Parts(z.x-G2.camX,z.y-30,'#7c3aed',8,5);
-      g2Float(z.x-G2.camX,z.y-60,z.hp<=0?'☠ DOWN!':'-10','#a78bfa');
-      if(z.hp<=0){z.dead=true;G2.kills++;G2.score+=200;g2Parts(z.x-G2.camX,z.y-20,'#ef4444',20,6);g2Toast('💀 Zombie down!','#ef4444');}
+      g2Float(z.x-G2.camX,z.y-60,z.hp<=0?'☠ DOWN!':'-10 🥊','#a78bfa');
+      if(z.hp<=0){z.dead=true;G2.kills++;G2.score+=200;g2Parts(z.x-G2.camX,z.y-20,'#ef4444',20,6);g2Toast('💀 Zombie down! (melee)','#ef4444');}
     }
   }
 }
+
+// Gun shoot — only when gun crafted, own rate-limit
+function g2TryShootGun(){
+  if(G2.gunCooldown>0||G2.gunAmmo<=0)return;
+  g2Shoot();
+}
+
+// Legacy wrapper kept for mousedown compatibility
+function g2TryAttack(){g2TryFAction();}
 
 function g2TryStore(){
   if(g2SdgPaused)return;
@@ -2039,15 +2065,36 @@ function g2TryCraft(){
   if(G2.iron<3){g2Float(P2.x-G2.camX,P2.y-50,'Need 3 iron to craft gun!','#ef4444');return;}
   G2.iron-=3;G2.gunCrafted=true;G2.gunAmmo=18;G2.score+=400;G2.screenShake=12;
   g2Parts(g2Arm.x-G2.camX,G2_GF*H2-40,'#f97316',28,6);
-  g2Toast('🔫 GUN CRAFTED! Click/F to shoot — 18 ammo. Deals 2× damage.','#f97316');
+  g2Toast('🔫 GUN CRAFTED! [F] or CLICK to shoot — 18 ammo. Double damage! ⚠ Enemies alerted!','#f97316');
+  // Spawn cave-end alert zombies — they heard the gun being made
+  if(!G2.caveWaveSpawned){
+    G2.caveWaveSpawned=true;
+    const gy=G2_GF*H2;
+    const caveZombies=[
+      {x:G2_CAVE_END-80,vx:-1.8,hp:22,maxHp:22},
+      {x:G2_CAVE_END-160,vx:-1.6,hp:20,maxHp:20},
+      {x:G2_CAVE_END-240,vx:-1.9,hp:24,maxHp:24},
+      {x:G2_CAVE_END-320,vx:-1.7,hp:20,maxHp:20},
+    ];
+    for(const w of caveZombies)g2Zombies.push({...w,y:gy-74,dead:false,stun:0,walkF:0});
+    setTimeout(()=>g2Toast('☠ CAVE ZOMBIES ALERTED — they heard you build the weapon!','#ef4444'),400);
+    G2.screenShake=18;
+  }
 }
 
 function g2Shoot(){
   if(!G2.gunCrafted||G2.gunAmmo<=0||G2.gunCooldown>0)return;
-  G2.gunCooldown=14;G2.gunAmmo--;G2.screenShake=3;
-  const bx=P2.x+P2.w/2+P2.facing*20,by=P2.y+P2.h*0.4;
-  g2Bullets.push({x:bx,y:by,vx:P2.facing*18,vy:-1,life:1});
-  g2Parts(bx-G2.camX,by,'#f97316',6,5);
+  G2.gunCooldown=10;G2.gunAmmo--;G2.screenShake=4;
+  // Bullet origin in world-space
+  const bx=P2.x+P2.w/2+P2.facing*32;
+  const by=P2.y+P2.h*0.38;
+  g2Bullets.push({x:bx,y:by,vx:P2.facing*22,vy:0,life:1});
+  // Muzzle flash — store world-space, convert to screen at draw time
+  G2.muzzleFlash={wx:bx,wy:by,life:7};
+  // Particle burst at screen position
+  g2Parts(bx-G2.camX,by,'#fde68a',8,7);
+  g2Parts(bx-G2.camX,by,'#f97316',5,4);
+  if(G2.gunAmmo===0)g2Toast('🔫 OUT OF AMMO — melee only now!','#ef4444');
 }
 
 // ── Update loops ──
@@ -2227,53 +2274,178 @@ function g2DrawBG(){
   ctx2.fillStyle=sg;ctx2.fillRect(0,0,W2,gy);
 
   if(!cave){
-    // Stars
-    for(let i=0;i<42;i++){const sx=((i*211+G2.camX*0.04)%W2),sy=(i*79+14)%(gy*.4);ctx2.fillStyle=`rgba(210,215,185,${.1+.12*(1-sy/(gy*.4))})`;ctx2.beginPath();ctx2.arc(sx,sy,i%4===0?.8:.35,0,Math.PI*2);ctx2.fill();}
-    // Distant ruins
-    ctx2.save();ctx2.globalAlpha=.07;
-    for(let i=0;i<10;i++){const bx=((i*340+80)-G2.camX*.16)%W2;ctx2.fillStyle='#1a180c';ctx2.fillRect(bx,gy-50-i*14,44+i*7,50+i*14);}
+    // Stars with subtle twinkle
+    for(let i=0;i<55;i++){
+      const sx=((i*211+G2.camX*0.04)%W2),sy=(i*79+14)%(gy*.42);
+      const twinkle=0.08+0.14*(1-sy/(gy*.42))+Math.sin(G2.frame*.02+i)*.04;
+      ctx2.fillStyle=`rgba(210,215,185,${twinkle})`;
+      ctx2.beginPath();ctx2.arc(sx,sy,i%5===0?1.2:i%3===0?.6:.3,0,Math.PI*2);ctx2.fill();
+    }
+    // Moon
+    const moonX=W2*.15+(G2.camX*.006%80);const moonY=gy*.08;
+    const mg=ctx2.createRadialGradient(moonX,moonY,0,moonX,moonY,28);
+    mg.addColorStop(0,'rgba(230,225,200,.28)');mg.addColorStop(.6,'rgba(200,195,170,.12)');mg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx2.fillStyle=mg;ctx2.beginPath();ctx2.arc(moonX,moonY,28,0,Math.PI*2);ctx2.fill();
+    ctx2.fillStyle='rgba(220,215,190,.09)';ctx2.beginPath();ctx2.arc(moonX,moonY,20,0,Math.PI*2);ctx2.fill();
+    // Distant city rubble silhouette (multi-layer)
+    ctx2.save();ctx2.globalAlpha=.05;
+    for(let i=0;i<14;i++){
+      const bx=((i*310+120)-G2.camX*.12)%W2;const bh=40+i*18;
+      ctx2.fillStyle='#1a180c';ctx2.fillRect(bx,gy-bh,38+i*5,bh);
+      // Broken window dots
+      if(i%3===0){ctx2.fillStyle='rgba(100,80,20,.4)';ctx2.fillRect(bx+6,gy-bh+8,4,4);ctx2.fillRect(bx+14,gy-bh+8,4,4);}
+    }
     ctx2.restore();
-    // Existing Zone 1 shelters silhouette (background callback to zone 1)
+    // Mid-distance ruins (slightly more visible)
+    ctx2.save();ctx2.globalAlpha=.09;
+    for(let i=0;i<7;i++){
+      const bx=((i*480+250)-G2.camX*.22)%W2;const bh=28+i*10;
+      ctx2.fillStyle='#22180a';ctx2.fillRect(bx,gy-bh,24+i*4,bh);
+    }
+    ctx2.restore();
+    // Atmospheric haze bands
+    for(let b=0;b<3;b++){
+      const hy=gy*(0.45+b*.15);
+      const hg=ctx2.createLinearGradient(0,hy-20,0,hy+20);
+      hg.addColorStop(0,'rgba(0,0,0,0)');hg.addColorStop(.5,`rgba(${20+b*8},${30+b*5},${10+b*3},${.04+b*.01})`);hg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx2.fillStyle=hg;ctx2.fillRect(0,hy-20,W2,40);
+    }
+    // Zone 1 shelter silhouettes (far background)
     for(let i=0;i<3;i++){
-      const sx=((i*280+3400)-G2.camX*.12)%W2;
-      ctx2.save();ctx2.globalAlpha=.06;ctx2.fillStyle='#2a1a08';ctx2.fillRect(sx,gy-55,50,55);ctx2.restore();
+      const sx=((i*280+3400)-G2.camX*.1)%W2;
+      ctx2.save();ctx2.globalAlpha=.05;ctx2.fillStyle='#2a1a08';ctx2.fillRect(sx,gy-55,50,55);ctx2.restore();
     }
   }else{
-    // Cave stalactites
-    for(let i=0;i<18;i++){
-      const sx=((i*220+80+G2_CAVE_X)-G2.camX)%(W2+200);if(sx<-80||sx>W2+80)continue;
-      const sh=25+((i*17)%45);
-      const cg=ctx2.createLinearGradient(sx,0,sx,sh);
-      cg.addColorStop(0,'rgba(30,50,120,.6)');cg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx2.fillStyle=cg;ctx2.beginPath();ctx2.moveTo(sx-6,0);ctx2.lineTo(sx+6,0);ctx2.lineTo(sx+2,sh);ctx2.lineTo(sx-2,sh);ctx2.closePath();ctx2.fill();
-      ctx2.fillStyle='rgba(60,120,200,.45)';ctx2.shadowColor='rgba(60,130,200,.8)';ctx2.shadowBlur=8;
-      ctx2.beginPath();ctx2.arc(sx,sh,3,0,Math.PI*2);ctx2.fill();ctx2.shadowBlur=0;
+    // ── CAVE INTERIOR — rich rock textures ──
+    // Rock wall background — layered stone
+    const rwg=ctx2.createLinearGradient(0,0,W2,0);
+    rwg.addColorStop(0,'rgba(8,10,24,.9)');rwg.addColorStop(.5,'rgba(12,14,28,.6)');rwg.addColorStop(1,'rgba(8,10,24,.9)');
+    ctx2.fillStyle=rwg;ctx2.fillRect(0,0,W2,gy);
+    // Rock crack lines on walls
+    ctx2.strokeStyle='rgba(20,30,60,.5)';ctx2.lineWidth=1;
+    for(let c=0;c<12;c++){
+      const cx=(c*160+G2_CAVE_X-G2.camX+c*40)%(W2+300)-100;
+      if(cx<-80||cx>W2+80)continue;
+      const cy=Math.random()>.5?gy*.1+c*12:gy*.25+c*8;
+      ctx2.beginPath();ctx2.moveTo(cx,0);
+      for(let s=0;s<5;s++)ctx2.lineTo(cx+(Math.random()-.5)*20,s*gy*.18);
+      ctx2.stroke();
     }
-    // Glowing pools on ground
-    for(let i=0;i<6;i++){
-      const px=((i*300+G2_CAVE_X+120)-G2.camX);if(px<-100||px>W2+100)continue;
-      const pg=ctx2.createRadialGradient(px,gy-4,0,px,gy-4,60);
-      pg.addColorStop(0,'rgba(40,120,80,.16)');pg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx2.fillStyle=pg;ctx2.fillRect(px-60,gy-30,120,30);
+    // Cave ceiling stalactites — larger, more varied
+    for(let i=0;i<26;i++){
+      const sx=((i*165+60+G2_CAVE_X)-G2.camX)%(W2+200);if(sx<-60||sx>W2+60)continue;
+      const sh=18+((i*23)%62);const sw=4+((i*7)%7);
+      // Rock base
+      const sg=ctx2.createLinearGradient(sx,0,sx,sh);
+      sg.addColorStop(0,'rgba(25,35,75,.8)');sg.addColorStop(.7,'rgba(15,22,55,.6)');sg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx2.fillStyle=sg;
+      ctx2.beginPath();ctx2.moveTo(sx-sw,0);ctx2.lineTo(sx+sw,0);ctx2.lineTo(sx+sw*.4,sh);ctx2.lineTo(sx-sw*.4,sh);ctx2.closePath();ctx2.fill();
+      // Crystal tip glow
+      const tipCol=i%4===0?'rgba(140,80,200,.7)':i%3===0?'rgba(60,140,220,.7)':'rgba(60,120,200,.5)';
+      ctx2.fillStyle=tipCol;ctx2.shadowColor=tipCol;ctx2.shadowBlur=10;
+      ctx2.beginPath();ctx2.arc(sx,sh,2.5+((i*3)%3)*.5,0,Math.PI*2);ctx2.fill();ctx2.shadowBlur=0;
     }
+    // Floor stalagnites
+    for(let i=0;i<10;i++){
+      const sx=((i*340+180+G2_CAVE_X)-G2.camX)%(W2+300);if(sx<-60||sx>W2+60)continue;
+      const sh=8+((i*13)%20);
+      ctx2.fillStyle='rgba(20,28,60,.7)';
+      ctx2.beginPath();ctx2.moveTo(sx-5,gy);ctx2.lineTo(sx+5,gy);ctx2.lineTo(sx,gy-sh);ctx2.closePath();ctx2.fill();
+    }
+    // Glowing crystal floor pools — richer
+    for(let i=0;i<8;i++){
+      const px=((i*220+G2_CAVE_X+80)-G2.camX);if(px<-120||px>W2+120)continue;
+      const col=i%3===0?[140,80,200]:i%2===0?[40,120,200]:[40,160,100];
+      const pg=ctx2.createRadialGradient(px,gy-4,0,px,gy-4,50+i*8);
+      pg.addColorStop(0,`rgba(${col[0]},${col[1]},${col[2]},.22)`);
+      pg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx2.fillStyle=pg;ctx2.fillRect(px-(50+i*8),gy-28,100+i*16,28);
+      // Pool surface shimmer
+      ctx2.fillStyle=`rgba(${col[0]},${col[1]},${col[2]},.1)`;
+      ctx2.beginPath();ctx2.ellipse(px,gy-2,22+i*4,4,0,0,Math.PI*2);ctx2.fill();
+    }
+    // Cave walls at sides — dark stone panels
+    ctx2.save();ctx2.globalAlpha=.5;
+    ctx2.fillStyle='#0a0c18';ctx2.fillRect(0,0,30,H2);ctx2.fillRect(W2-30,0,30,H2);
+    ctx2.restore();
+    // Distant cave depth fog
+    const dfg=ctx2.createLinearGradient(0,0,0,gy);
+    dfg.addColorStop(0,'rgba(4,6,18,.4)');dfg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx2.fillStyle=dfg;ctx2.fillRect(0,0,W2,gy);
   }
-  // Background trees (open world)
+  // Background trees — richer, more varied
   if(!cave){
-    for(let i=0;i<22;i++){
-      const bx=(i*170+40)-G2.camX*.28;if(bx<-140||bx>W2+140)continue;
-      const tH=70+((i*17)%55);const tw=10+((i*11)%8);
-      ctx2.save();ctx2.globalAlpha=.22+((i*7)%6)*.015;ctx2.fillStyle='#1c1c0c';
-      const v=i%4;
-      if(v===0){ctx2.fillRect(bx-tw/2,gy-tH,tw,tH);ctx2.strokeStyle='#1c1c0c';ctx2.lineWidth=3;ctx2.beginPath();ctx2.moveTo(bx,gy-tH*.55);ctx2.lineTo(bx-18,gy-tH*.72);ctx2.stroke();}
-      else if(v===1){ctx2.fillRect(bx-tw/2,gy-tH,tw,tH);ctx2.beginPath();ctx2.ellipse(bx,gy-tH-16,28+((i*5)%14),22+((i*3)%12),0,0,Math.PI*2);ctx2.fill();}
-      else if(v===2){ctx2.save();ctx2.translate(bx,gy);ctx2.rotate(-.1+((i%3)-1)*.06);ctx2.fillRect(-tw/2,-tH,tw,tH);ctx2.restore();}
-      else{ctx2.beginPath();ctx2.moveTo(bx-8,gy);ctx2.lineTo(bx,gy-tH);ctx2.lineTo(bx+8,gy);ctx2.closePath();ctx2.fill();}
+    for(let i=0;i<28;i++){
+      const bx=(i*155+40)-G2.camX*.28;if(bx<-160||bx>W2+160)continue;
+      const tH=65+((i*17)%65);const tw=9+((i*11)%9);
+      const baseAlpha=.18+((i*7)%7)*.018;
+      ctx2.save();ctx2.globalAlpha=baseAlpha;ctx2.fillStyle=i%7===0?'#2a1c0c':i%5===0?'#1c240c':'#1c1c0c';
+      const v=i%5;
+      if(v===0){
+        // Dead tree with branches
+        ctx2.fillRect(bx-tw/2,gy-tH,tw,tH);
+        ctx2.strokeStyle=ctx2.fillStyle;ctx2.lineWidth=2.5;ctx2.lineCap='round';
+        ctx2.beginPath();ctx2.moveTo(bx,gy-tH*.55);ctx2.lineTo(bx-20,gy-tH*.72);ctx2.stroke();
+        ctx2.beginPath();ctx2.moveTo(bx,gy-tH*.68);ctx2.lineTo(bx+16,gy-tH*.82);ctx2.stroke();
+        ctx2.beginPath();ctx2.moveTo(bx,gy-tH*.8);ctx2.lineTo(bx-12,gy-tH*.9);ctx2.stroke();
+      }else if(v===1){
+        // Round canopy tree
+        ctx2.fillRect(bx-tw/2,gy-tH,tw,tH);
+        ctx2.beginPath();ctx2.ellipse(bx,gy-tH-14,30+((i*5)%16),24+((i*3)%14),0,0,Math.PI*2);ctx2.fill();
+        ctx2.beginPath();ctx2.ellipse(bx-20,gy-tH-8,16,16,0,0,Math.PI*2);ctx2.fill();
+        ctx2.beginPath();ctx2.ellipse(bx+18,gy-tH-6,18,15,0,0,Math.PI*2);ctx2.fill();
+      }else if(v===2){
+        // Leaning tree
+        ctx2.save();ctx2.translate(bx,gy);ctx2.rotate(-.12+((i%3)-1)*.07);
+        ctx2.fillRect(-tw/2,-tH,tw,tH);
+        ctx2.strokeStyle=ctx2.fillStyle;ctx2.lineWidth=2;
+        ctx2.beginPath();ctx2.moveTo(0,-tH*.5);ctx2.lineTo(-18,-tH*.68);ctx2.stroke();
+        ctx2.restore();
+      }else if(v===3){
+        // Tall pine
+        ctx2.beginPath();ctx2.moveTo(bx-10,gy);ctx2.lineTo(bx,gy-tH);ctx2.lineTo(bx+10,gy);ctx2.closePath();ctx2.fill();
+        ctx2.beginPath();ctx2.moveTo(bx-13,gy-tH*.5);ctx2.lineTo(bx,gy-tH*.85);ctx2.lineTo(bx+13,gy-tH*.5);ctx2.closePath();ctx2.fill();
+      }else{
+        // Bushy shrub
+        ctx2.beginPath();ctx2.ellipse(bx,gy-14,22,14,0,0,Math.PI*2);ctx2.fill();
+        ctx2.beginPath();ctx2.ellipse(bx-12,gy-12,14,12,0,0,Math.PI*2);ctx2.fill();
+        ctx2.beginPath();ctx2.ellipse(bx+14,gy-10,16,13,0,0,Math.PI*2);ctx2.fill();
+      }
       ctx2.restore();
     }
   }
-  // Ground
-  if(cave){ctx2.fillStyle='#0c0e18';ctx2.fillRect(0,gy,W2,H2-gy+2);ctx2.fillStyle='#10122a';ctx2.fillRect(0,gy,W2,5);}
-  else{ctx2.fillStyle='#161208';ctx2.fillRect(0,gy,W2,H2-gy+2);ctx2.fillStyle='#1e1808';ctx2.fillRect(0,gy,W2,4);for(let cx=0;cx<W2;cx+=80){const off=((cx*5+G2.camX*.08)%80);ctx2.fillStyle='rgba(30,20,5,.5)';ctx2.fillRect(cx-off,gy+8,40,1);}}
+  // Ground — richer layered texture
+  if(cave){
+    ctx2.fillStyle='#0c0e18';ctx2.fillRect(0,gy,W2,H2-gy+2);
+    ctx2.fillStyle='#10122a';ctx2.fillRect(0,gy,W2,5);
+    // Cave floor cracks
+    ctx2.strokeStyle='rgba(30,40,80,.5)';ctx2.lineWidth=1;
+    for(let ci=0;ci<8;ci++){
+      const cfx=(ci*190+G2_CAVE_X-G2.camX+ci*30)%(W2+200);
+      ctx2.beginPath();ctx2.moveTo(cfx,gy+2);ctx2.lineTo(cfx+(Math.random()-.5)*30,gy+14);ctx2.stroke();
+    }
+  }else{
+    ctx2.fillStyle='#161208';ctx2.fillRect(0,gy,W2,H2-gy+2);
+    ctx2.fillStyle='#1e1808';ctx2.fillRect(0,gy,W2,5);
+    // Dirt patches
+    for(let gx=0;gx<W2;gx+=80){
+      const off=((gx*5+G2.camX*.08)%80);
+      ctx2.fillStyle='rgba(30,20,5,.5)';ctx2.fillRect(gx-off,gy+8,40,1);
+    }
+    // Scattered pebbles
+    for(let pi=0;pi<18;pi++){
+      const px=((pi*230+G2.camX*.15)%W2);
+      ctx2.fillStyle=`rgba(40,32,12,${.3+pi%3*.1})`;
+      ctx2.beginPath();ctx2.ellipse(px,gy+3,2+pi%3,1,0,0,Math.PI*2);ctx2.fill();
+    }
+    // Grass tufts near surface
+    for(let gi=0;gi<16;gi++){
+      const gx2=((gi*270+80+G2.camX*.2)%W2);
+      ctx2.strokeStyle=`rgba(${40+gi%5*8},${60+gi%4*10},${15},${.25+gi%3*.08})`;
+      ctx2.lineWidth=1;
+      for(let b=0;b<3;b++){ctx2.beginPath();ctx2.moveTo(gx2+b*4,gy);ctx2.lineTo(gx2+b*4+(b-1)*3,gy-5-b*2);ctx2.stroke();}
+    }
+  }
   // Platforms
   for(const pl of g2Platforms){
     const px=pl.x-G2.camX,py=pl.yF*H2;if(px<-200||px>W2+200)continue;
@@ -2318,15 +2490,15 @@ function g2DrawBG(){
     ctx2.fillStyle=eg;ctx2.fillRect(ceX2-70,0,140,H2);
     ctx2.font='bold 9px "Share Tech Mono"';ctx2.fillStyle='rgba(80,200,80,.5)';ctx2.textAlign='center';ctx2.fillText('EXIT CAVE',ceX2+35,gy*.2);
   }
-  // Farm patches
-  for(const pId of [0,1]){
+  // Farm patches — all 4
+  for(const pId of [0,1,2,3]){
     const slots=g2Farm.filter(f=>f.patch===pId);if(!slots.length)continue;
     const bedL=slots[0].x-G2.camX-28;const bedW=(slots.length-1)*G2_PATCH_SP+56;
     const anyRdy=slots.some(s=>s.state==='ready');
     g2rr(bedL,gy-14,bedW,14,3,anyRdy?'#3d5818':slots.every(s=>s.state==='soil')?'#2a1c08':'#3a4818');
     ctx2.fillStyle='rgba(0,0,0,.25)';for(let si=1;si<slots.length;si++)ctx2.fillRect(bedL+si*G2_PATCH_SP-1,gy-14,2,14);
     ctx2.font='bold 8px Share Tech Mono';ctx2.fillStyle='rgba(200,185,150,.22)';ctx2.textAlign='center';
-    ctx2.fillText(`PATCH ${String.fromCharCode(65+pId)}`,bedL+bedW/2,gy-16);
+    ctx2.fillText(`PATCH ${['A','B','C','D'][pId]||pId}`,bedL+bedW/2,gy-16);
     for(const fp of slots){
       const fpx=fp.x-G2.camX;
       if(fp.state==='growing'){
@@ -2361,30 +2533,91 @@ function g2DrawBG(){
   ctx2.font='8px "Share Tech Mono"';ctx2.fillStyle='rgba(252,211,77,.6)';ctx2.fillText(nearBarn?'[E] STORE FOOD':'SDG 12 · Barn',bcx,rPeak-8);
   ctx2.font='7px "Share Tech Mono"';ctx2.fillStyle='rgba(200,185,150,.4)';ctx2.fillText(`${G2.storedFood}/${G2.storageTarget} stored`,bcx,rPeak+4);
 
-  // WINDMILL
+  // WINDMILL — tall, prominent
   const wx=g2Windmill.x-G2.camX;const nearW=Math.abs(P2.x+P2.w/2-g2Windmill.x)<70;
-  if(g2Windmill.started)g2Windmill.spinAngle+=0.06;
-  // Tower
-  ctx2.fillStyle='#4a4a38';ctx2.beginPath();ctx2.moveTo(wx-8,gy);ctx2.lineTo(wx-5,gy-110);ctx2.lineTo(wx+5,gy-110);ctx2.lineTo(wx+8,gy);ctx2.closePath();ctx2.fill();
-  // Head
-  g2rr(wx-10,gy-120,20,12,4,'#5a5a44');
-  // Blades
-  ctx2.save();ctx2.translate(wx,gy-114);ctx2.rotate(g2Windmill.spinAngle);
-  for(let blade=0;blade<4;blade++){
-    ctx2.save();ctx2.rotate(blade*Math.PI/2);
-    ctx2.fillStyle=g2Windmill.started?'#9aba68':'#6a7a58';
-    ctx2.beginPath();ctx2.moveTo(0,0);ctx2.lineTo(-6,-40);ctx2.lineTo(6,-40);ctx2.closePath();ctx2.fill();
+  if(g2Windmill.started)g2Windmill.spinAngle+=0.05;
+  // Foundation block
+  ctx2.fillStyle='#2a2a1c';ctx2.fillRect(wx-14,gy-6,28,6);
+  ctx2.strokeStyle='#3a3a28';ctx2.lineWidth=1.5;ctx2.strokeRect(wx-14,gy-6,28,6);
+  // Tower — tapered, 190px tall
+  const twH=190;
+  ctx2.fillStyle='#505040';
+  ctx2.beginPath();ctx2.moveTo(wx-10,gy);ctx2.lineTo(wx-5,gy-twH);ctx2.lineTo(wx+5,gy-twH);ctx2.lineTo(wx+10,gy);ctx2.closePath();ctx2.fill();
+  // Tower texture — horizontal bands
+  ctx2.strokeStyle='rgba(0,0,0,.3)';ctx2.lineWidth=1;
+  for(let ti=30;ti<twH;ti+=22){
+    const frac=ti/twH;const hw=10-frac*5;
+    ctx2.beginPath();ctx2.moveTo(wx-hw,gy-ti);ctx2.lineTo(wx+hw,gy-ti);ctx2.stroke();
+  }
+  // Tower highlight
+  ctx2.strokeStyle='rgba(255,255,255,.07)';ctx2.lineWidth=2;
+  ctx2.beginPath();ctx2.moveTo(wx-2,gy-8);ctx2.lineTo(wx-1,gy-twH+4);ctx2.stroke();
+  // Nacelle (head box)
+  g2rr(wx-14,gy-twH-16,28,16,5,'#606050');
+  ctx2.strokeStyle='rgba(255,255,255,.1)';ctx2.lineWidth=1;ctx2.strokeRect(wx-14,gy-twH-16,28,16);
+  // Hub dot
+  ctx2.fillStyle='#808070';ctx2.beginPath();ctx2.arc(wx,gy-twH-8,4,0,Math.PI*2);ctx2.fill();
+  // Blades — 3 long blades
+  const bladeLen=72;
+  ctx2.save();ctx2.translate(wx,gy-twH-8);ctx2.rotate(g2Windmill.spinAngle);
+  for(let blade=0;blade<3;blade++){
+    ctx2.save();ctx2.rotate(blade*Math.PI*2/3);
+    const bg=ctx2.createLinearGradient(0,0,0,-bladeLen);
+    bg.addColorStop(0,g2Windmill.started?'#a8c870':'#7a8860');
+    bg.addColorStop(1,g2Windmill.started?'rgba(140,180,80,.3)':'rgba(80,90,60,.3)');
+    ctx2.fillStyle=bg;
+    ctx2.beginPath();ctx2.moveTo(-5,0);ctx2.quadraticCurveTo(-9,-bladeLen*.5,-3,-bladeLen);ctx2.lineTo(3,-bladeLen);ctx2.quadraticCurveTo(9,-bladeLen*.5,5,0);ctx2.closePath();ctx2.fill();
+    // Blade rib
+    ctx2.strokeStyle='rgba(0,0,0,.25)';ctx2.lineWidth=1;ctx2.beginPath();ctx2.moveTo(0,0);ctx2.lineTo(0,-bladeLen*.9);ctx2.stroke();
     ctx2.restore();
   }
   ctx2.restore();
-  // Glow if running
+  // Power glow when running
   if(g2Windmill.started){
-    ctx2.shadowColor='#fbbf24';ctx2.shadowBlur=18;ctx2.strokeStyle='rgba(251,191,36,.4)';ctx2.lineWidth=2;ctx2.beginPath();ctx2.arc(wx,gy-114,28,0,Math.PI*2);ctx2.stroke();ctx2.shadowBlur=0;
+    const wglow=ctx2.createRadialGradient(wx,gy-twH-8,0,wx,gy-twH-8,55);
+    wglow.addColorStop(0,'rgba(251,191,36,.3)');wglow.addColorStop(1,'rgba(0,0,0,0)');
+    ctx2.fillStyle=wglow;ctx2.fillRect(wx-55,gy-twH-63,110,110);
+    ctx2.shadowColor='#fbbf24';ctx2.shadowBlur=22;ctx2.strokeStyle='rgba(251,191,36,.5)';ctx2.lineWidth=2;
+    ctx2.beginPath();ctx2.arc(wx,gy-twH-8,36,0,Math.PI*2);ctx2.stroke();ctx2.shadowBlur=0;
+    // Power cable going right from windmill
+    ctx2.strokeStyle='rgba(251,191,36,.25)';ctx2.lineWidth=1.5;ctx2.setLineDash([6,4]);
+    ctx2.beginPath();ctx2.moveTo(wx+10,gy-twH+4);ctx2.lineTo(wx+200,gy-twH+4);ctx2.stroke();
+    ctx2.setLineDash([]);
   }
-  ctx2.font='bold 9px "Share Tech Mono"';ctx2.fillStyle=nearW?'#fbbf24':'rgba(251,191,36,.5)';ctx2.textAlign='center';
-  ctx2.fillText(g2Windmill.started?'⚡ WIND POWER ONLINE':'⚡ WINDMILL',wx,gy-135);
-  ctx2.font='7px "Share Tech Mono"';ctx2.fillStyle='rgba(200,185,150,.3)';
-  ctx2.fillText(g2Windmill.started?'SDG 7 ✓':`[F] Need ${G2.fusesTarget} fuses (${G2.fuses}/${G2.fusesTarget})`,wx,gy-123);
+  ctx2.font='bold 10px "Share Tech Mono"';ctx2.fillStyle=nearW?'#fbbf24':'rgba(251,191,36,.5)';ctx2.textAlign='center';
+  ctx2.fillText(g2Windmill.started?'⚡ WIND POWER ONLINE':'⚡ WINDMILL',wx,gy-twH-26);
+  ctx2.font='7px "Share Tech Mono"';ctx2.fillStyle='rgba(200,185,150,.32)';
+  ctx2.fillText(g2Windmill.started?'SDG 7 ✓':`[F] Need ${G2.fusesTarget} fuses (${G2.fuses}/${G2.fusesTarget})`,wx,gy-twH-14);
+
+  // STREET LIGHTS — powered by windmill
+  const powered=g2Windmill.started;
+  const slFlicker=powered?0.88+Math.sin(G2.frame*.08)*.06:0;
+  for(const sl of g2StreetLights){
+    const slx=sl.x-G2.camX;if(slx<-60||slx>W2+60)continue;
+    // Pole
+    ctx2.fillStyle='#3a3a2a';ctx2.fillRect(slx-2,gy-90,4,90);
+    // Arm
+    ctx2.strokeStyle='#3a3a2a';ctx2.lineWidth=3;ctx2.lineCap='round';
+    ctx2.beginPath();ctx2.moveTo(slx,gy-88);ctx2.lineTo(slx+18,gy-88);ctx2.lineTo(slx+18,gy-80);ctx2.stroke();
+    // Lamp housing
+    ctx2.fillStyle='#282818';g2rr(slx+8,gy-84,22,10,3,'#282818');
+    if(powered){
+      // Glowing lamp
+      ctx2.shadowColor='#fde68a';ctx2.shadowBlur=18*slFlicker;
+      ctx2.fillStyle=`rgba(253,230,138,${slFlicker})`;
+      ctx2.beginPath();ctx2.ellipse(slx+19,gy-79,7,4,0,0,Math.PI*2);ctx2.fill();
+      ctx2.shadowBlur=0;
+      // Light cone on ground
+      const coneAlpha=slFlicker*0.12;
+      const lcg=ctx2.createRadialGradient(slx+19,gy-79,2,slx+19,gy,55);
+      lcg.addColorStop(0,`rgba(253,230,138,${coneAlpha*2})`);lcg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx2.fillStyle=lcg;
+      ctx2.beginPath();ctx2.moveTo(slx+19,gy-79);ctx2.lineTo(slx-24,gy);ctx2.lineTo(slx+62,gy);ctx2.closePath();ctx2.fill();
+    }else{
+      // Dark, dead lamp
+      ctx2.fillStyle='rgba(60,55,30,.4)';ctx2.beginPath();ctx2.ellipse(slx+19,gy-79,7,4,0,0,Math.PI*2);ctx2.fill();
+    }
+  }
 
   // ARMOURY
   const ax=g2Arm.x-G2.camX;const nearA=Math.abs(P2.x-g2Arm.x)<80;
@@ -2591,8 +2824,29 @@ function g2DrawPlayer(){
   if(shielded){
     ctx2.shadowColor='#67e8f9';ctx2.shadowBlur=16;ctx2.strokeStyle='rgba(103,232,249,.5)';ctx2.lineWidth=2.5;ctx2.beginPath();ctx2.ellipse(0,-40,22,35,0,0,Math.PI*2);ctx2.stroke();ctx2.shadowBlur=0;
   }
-  // Gun visual when crafted
-  if(G2.gunCrafted){ctx2.save();ctx2.translate(14*d,-44);ctx2.rotate(d*-.2);ctx2.fillStyle='#2a2820';g2rr(-4,-4,16,5,2,'#2a2820');g2rr(-2,-7,10,4,2,'#1e1c18');g2rr(6,-5,6,3,1,'#343230');ctx2.restore();}
+  // Gun visual — prominently visible when crafted
+  if(G2.gunCrafted){
+    ctx2.save();
+    ctx2.translate(16*d,-44);
+    ctx2.rotate(d*-.15);
+    // Stock
+    ctx2.fillStyle='#4a3828';g2rr(-2,-3,18,6,2,'#4a3828');
+    // Barrel — extends forward
+    ctx2.fillStyle='#2a2820';g2rr(10,-5,22,5,2,'#2a2820');
+    // Trigger guard
+    ctx2.strokeStyle='#343230';ctx2.lineWidth=1.5;ctx2.beginPath();ctx2.arc(5,-1,5,0,Math.PI);ctx2.stroke();
+    // Magazine
+    ctx2.fillStyle='#1e1c18';g2rr(2,0,7,8,2,'#1e1c18');
+    // Muzzle highlight
+    ctx2.fillStyle='#606060';ctx2.beginPath();ctx2.arc(32,-3,3,0,Math.PI*2);ctx2.fill();
+    // Ammo indicator glow
+    if(G2.gunAmmo>0){
+      ctx2.shadowColor='#f97316';ctx2.shadowBlur=6;
+      ctx2.fillStyle='rgba(249,115,22,.6)';ctx2.beginPath();ctx2.arc(5,-8,2.5,0,Math.PI*2);ctx2.fill();
+      ctx2.shadowBlur=0;
+    }
+    ctx2.restore();
+  }
   ctx2.save();ctx2.translate(-15*d,-48);ctx2.rotate(-.22+Math.sin(P2.walkF*Math.PI/3)*.01-punchA*1.2*d);g2rr(-4,-17,8,19,4,jCol);ctx2.fillStyle='#3a2810';ctx2.fillRect(-4,-3,8,5);ctx2.fillStyle=skin;ctx2.beginPath();ctx2.arc(0,-17,4.5,0,Math.PI*2);ctx2.fill();ctx2.restore();
   ctx2.save();ctx2.translate(15*d,-48);ctx2.rotate(.22+punchA*1.35*d);g2rr(-4,-17,8,19,4,jCol);ctx2.fillStyle='#3a2810';ctx2.fillRect(-4,-3,8,5);ctx2.fillStyle=skin;ctx2.beginPath();ctx2.arc(0,-17,4.5,0,Math.PI*2);ctx2.fill();ctx2.restore();
   ctx2.fillStyle=skin;ctx2.fillRect(-4,-60,8,7);
@@ -2607,8 +2861,25 @@ function g2DrawPlayer(){
 
 function g2DrawBullets(){
   for(const b of g2Bullets){
-    ctx2.save();ctx2.globalAlpha=b.life;ctx2.shadowColor='#f97316';ctx2.shadowBlur=8;
-    ctx2.fillStyle='#fde68a';ctx2.beginPath();ctx2.ellipse(b.x-G2.camX,b.y,6,3,Math.atan2(b.vy,b.vx),0,Math.PI*2);ctx2.fill();ctx2.shadowBlur=0;ctx2.restore();
+    const bsx=b.x-G2.camX;
+    ctx2.save();
+    // Bullet trail
+    ctx2.globalAlpha=b.life*.5;
+    const trailLen=28*Math.sign(b.vx);
+    const tg=ctx2.createLinearGradient(bsx-trailLen,b.y,bsx,b.y);
+    tg.addColorStop(0,'rgba(0,0,0,0)');tg.addColorStop(1,'rgba(249,115,22,.6)');
+    ctx2.fillStyle=tg;
+    ctx2.fillRect(Math.min(bsx-trailLen,bsx)-2,b.y-3,Math.abs(trailLen)+4,6);
+    // Main bullet — bright glowing projectile
+    ctx2.globalAlpha=b.life;
+    ctx2.shadowColor='#fde68a';ctx2.shadowBlur=14;
+    ctx2.fillStyle='#fff9c4';
+    const angle=Math.atan2(b.vy,b.vx);
+    ctx2.translate(bsx,b.y);ctx2.rotate(angle);
+    ctx2.beginPath();ctx2.ellipse(0,0,10,4,0,0,Math.PI*2);ctx2.fill();
+    // Hot core
+    ctx2.fillStyle='#ffffff';ctx2.beginPath();ctx2.ellipse(0,0,5,2,0,0,Math.PI*2);ctx2.fill();
+    ctx2.shadowBlur=0;ctx2.restore();
   }
 }
 
@@ -2631,6 +2902,17 @@ function g2DrawMinimap(){
 }
 
 function g2DrawPoisonOverlay(){
+  // Muzzle flash
+  if(G2.muzzleFlash&&G2.muzzleFlash.life>0){
+    const mf=G2.muzzleFlash;
+    const mfsx=mf.wx-G2.camX;
+    ctx2.save();ctx2.globalAlpha=mf.life/7;
+    ctx2.shadowColor='#fde68a';ctx2.shadowBlur=32;
+    ctx2.fillStyle='#fff8a0';ctx2.beginPath();ctx2.arc(mfsx,mf.wy,20,0,Math.PI*2);ctx2.fill();
+    ctx2.fillStyle='#ffffff';ctx2.beginPath();ctx2.arc(mfsx,mf.wy,9,0,Math.PI*2);ctx2.fill();
+    ctx2.shadowBlur=0;ctx2.restore();
+    G2.muzzleFlash.life--;
+  }
   const a=G2.infection*.06;
   if(a>.01){ctx2.fillStyle=`rgba(40,110,12,${a})`;ctx2.fillRect(0,0,W2,H2);}
   const vg=ctx2.createRadialGradient(W2/2,H2/2,H2*.28,W2/2,H2/2,H2*.78);
@@ -2666,7 +2948,7 @@ function g2ShowEnd(){
         <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:3px;padding:9px 11px;"><div style="font-family:'Share Tech Mono';font-size:8px;letter-spacing:.2em;color:rgba(200,185,150,.35);margin-bottom:2px;">FINAL SCORE</div><div style="font-family:'Rubik Dirt';font-size:26px;color:#f0a830;">${G2.score}</div><div style="font-family:'Share Tech Mono';font-size:8px;color:rgba(200,185,150,.28);margin-top:3px;">ZONE 2/5 COMPLETE</div></div>
       </div>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-        <button class="g-btn" style="background:linear-gradient(135deg,#1a4a2a,#4ade80);font-size:15px;padding:12px 28px;" onclick="window.zone2Unlocked=true;goToLevelSelect()">LEVEL SELECT</button>
+        <button class="g-btn" style="background:linear-gradient(135deg,#1a4a2a,#4ade80);font-size:15px;padding:12px 28px;" onclick="goToLevelSelect()">LEVEL SELECT</button>
         <button class="g-btn" style="font-size:15px;padding:12px 28px;" onclick="enterZone2()">REPLAY ZONE 2</button>
       </div>`;
   }else{
@@ -2684,7 +2966,7 @@ function g2ShowEnd(){
       </div>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
         <button class="g-btn" style="background:linear-gradient(135deg,#7f1d1d,#ef4444);font-size:15px;padding:12px 28px;" onclick="enterZone2()">RETRY ZONE 2</button>
-        <button class="g-btn alt" style="font-size:15px;padding:12px 28px;" onclick="window.zone2Unlocked=true;goToLevelSelect()">ZONE SELECT</button>
+        <button class="g-btn alt" style="font-size:15px;padding:12px 28px;" onclick="goToLevelSelect()">ZONE SELECT</button>
       </div>`;
   }
 }
@@ -2727,14 +3009,14 @@ window.addEventListener('keyup',e=>{
 });
 window.addEventListener('mousedown',e=>{
   if(document.getElementById('g2-screen').style.display==='none')return;
-  if(e.button===0&&G2.gunCrafted&&!G2_paused&&!g2SdgPaused)g2Shoot();
+  if(e.button===0&&G2.gunCrafted&&!G2_paused&&!g2SdgPaused)g2TryShootGun();
 });
 
 // ── Enter Zone 2 ──
 let g2LoopId=0;
 function enterZone2(){
   // Reset all Zone 2 state
-  Object.assign(G2,{running:false,frame:0,camX:0,infection:0,maskTime:0,hp:100,score:0,kills:0,crops:0,foodInv:0,storedFood:0,iron:0,trades:0,armBuilt:false,armProgress:0,gunCrafted:false,gunAmmo:18,gunCooldown:0,shieldTime:0,fuses:0,windmillStarted:false,win:false,lose:false,extractionUnlocked:false,zombieWaveTimer:0,waveSpawned:false,sdgQueue:[],attackCooldown:0,attackAnim:0,screenShake:0,_lcr:0,_lst:0,_lir:0,_ltr:0,_lfu:0});
+  Object.assign(G2,{running:false,frame:0,camX:0,infection:0,maskTime:0,hp:100,score:0,kills:0,crops:0,foodInv:0,storedFood:0,iron:0,trades:0,armBuilt:false,armProgress:0,gunCrafted:false,gunAmmo:18,gunCooldown:0,shieldTime:0,fuses:0,windmillStarted:false,win:false,lose:false,extractionUnlocked:false,zombieWaveTimer:0,waveSpawned:false,caveWaveSpawned:false,muzzleFlash:null,armInteractCooldown:0,sdgQueue:[],attackCooldown:0,attackAnim:0,screenShake:0,_lcr:0,_lst:0,_lir:0,_ltr:0,_lfu:0});
   G2_paused=false;g2SdgPaused=false;
   Object.assign(g2inp,{left:false,right:false,jump:false,attack:false,attackPressed:false,store:false,storePressed:false,storeUsed:false,craft:false,craftP:false});
   // Reset farm
@@ -2784,7 +3066,13 @@ function enterZone2(){
     if(!g2SdgPaused){
       g2Physics();g2UpdateInfection();g2UpdateFarm();g2UpdateZombies();g2UpdateBullets();g2UpdatePickups();g2UpdateTrader();
       if(G2.attackCooldown>0)G2.attackCooldown--;
-      if(g2inp.attack&&G2.attackCooldown===0)g2TryAttack();
+      if(G2.gunCooldown>0)G2.gunCooldown--;
+      if(G2.armInteractCooldown>0)G2.armInteractCooldown--;
+      // F key: gate by attackCooldown for melee, gunCooldown handled inside g2TryFAction
+      if(g2inp.attack){
+        if(G2.gunCrafted){g2TryFAction();}
+        else if(G2.attackCooldown===0){g2TryFAction();}
+      }
       if(g2inp.store&&!g2inp.storeUsed){g2inp.storeUsed=true;g2TryStore();}
       if(g2inp.craft){g2TryCraft();g2inp.craft=false;}
       // Zombie wave spawner — 25s = 1500 frames
@@ -2826,6 +3114,1208 @@ function enterZone2(){
   setTimeout(()=>g2Toast('⚡ Deep cave: collect FUSES to start the windmill — SDG 7','#fbbf24'),15000);
 }
 window.enterZone2=enterZone2;
+</script>
+
+<!-- ═══════════════════════════════════════
+     ZONE 3 — THE FRACTURED NATION
+     All vars prefixed G3/g3 — zero overlap
+═══════════════════════════════════════ -->
+<style>
+#g3-screen{display:none;position:fixed;inset:0;z-index:300;background:#060810;}
+#gc3{display:block;position:absolute;top:0;left:0;}
+#g3-ui{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;}
+#g3-top{position:absolute;top:0;left:0;right:0;display:flex;align-items:flex-start;justify-content:space-between;padding:12px 14px;gap:10px;}
+#g3-overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:40;background:rgba(4,6,14,.94);pointer-events:all;cursor:default;}
+#g3-end{text-align:center;padding:36px 28px;max-width:620px;width:92%;background:rgba(8,10,22,.97);border:1px solid rgba(56,189,248,.2);border-radius:4px;pointer-events:all;max-height:88vh;overflow-y:auto;}
+#g3-pause-ov{position:absolute;inset:0;z-index:900;background:rgba(2,4,12,.86);backdrop-filter:blur(7px);display:none;align-items:center;justify-content:center;}
+#g3-pause-ov.vis{display:flex;}
+#g3-sdg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(6,8,20,.97);border:1.5px solid #38bdf8;border-radius:4px;padding:28px 36px;text-align:center;max-width:360px;width:90%;opacity:0;pointer-events:none;transition:opacity .3s;z-index:30;}
+#g3-sdg.vis{opacity:1;pointer-events:all;}
+#g3-toasts{position:absolute;bottom:120px;right:14px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;pointer-events:none;}
+#g3-ctrl{position:absolute;bottom:14px;left:14px;display:flex;gap:6px;flex-wrap:wrap;}
+#g3-dialogue{position:absolute;bottom:160px;left:50%;transform:translateX(-50%);background:rgba(4,8,20,.96);border:1.5px solid rgba(56,189,248,.5);border-radius:6px;padding:14px 20px;max-width:520px;width:90%;display:none;z-index:50;pointer-events:all;}
+#g3-dl-name{font-family:'Share Tech Mono';font-size:9px;letter-spacing:.25em;color:#38bdf8;margin-bottom:5px;}
+#g3-dl-text{font-family:'Barlow';font-size:13px;color:rgba(220,210,185,.9);line-height:1.55;}
+#g3-dl-btn{margin-top:10px;background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.35);border-radius:2px;padding:7px 18px;font-family:'Bebas Neue';font-size:14px;letter-spacing:.1em;color:#7dd3fc;cursor:pointer;pointer-events:all;}
+</style>
+
+<div id="g3-screen">
+  <canvas id="gc3"></canvas>
+  <div id="g3-ui">
+    <div id="g3-top">
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <div class="g-panel">
+          <div class="hp-label"><span>❤ HEALTH</span><span id="g3-v-hp">100</span></div>
+          <div style="height:10px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;"><div id="g3-hp-fill" style="height:100%;width:100%;background:linear-gradient(90deg,#ef4444,#f97316,#fca5a5);transition:width .25s;border-radius:2px;"></div></div>
+        </div>
+        <div class="g-panel" id="g3-sword-panel" style="display:none;">
+          <div style="font-family:'Share Tech Mono';font-size:9px;color:#fbbf24;letter-spacing:.12em;">⚔ SWORD EQUIPPED</div>
+        </div>
+        <div class="g-panel" id="g3-pump-panel" style="display:none;">
+          <div class="inf-label"><span>💧 PUMPING</span><span id="g3-v-pump">0%</span></div>
+          <div style="height:8px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;"><div id="g3-pump-fill" style="height:100%;width:0%;background:linear-gradient(90deg,#38bdf8,#7dd3fc);border-radius:2px;transition:width .5s;"></div></div>
+        </div>
+      </div>
+      <div class="g-panel">
+        <div class="stat-row"><span class="s-icon">🐟</span><span class="s-name">FISH</span><div class="s-track"><div id="g3-b-fish" class="s-fill" style="background:linear-gradient(90deg,#38bdf8,#7dd3fc);width:0%"></div></div><span id="g3-v-fish" class="s-val">0/3</span></div>
+        <div class="stat-row"><span class="s-icon">💧</span><span class="s-name">WATER</span><div class="s-track"><div id="g3-b-water" class="s-fill" style="background:linear-gradient(90deg,#38bdf8,#a5f3fc);width:0%"></div></div><span id="g3-v-water" class="s-val">NOT PUMPED</span></div>
+        <div class="stat-row"><span class="s-icon">⚙️</span><span class="s-name">PARTS</span><div class="s-track"><div id="g3-b-parts" class="s-fill" style="background:linear-gradient(90deg,#94a3b8,#cbd5e1);width:0%"></div></div><span id="g3-v-parts" class="s-val">0/4</span></div>
+        <div class="stat-row"><span class="s-icon">💀</span><span class="s-name">KILLS</span><div class="s-track"><div id="g3-b-kills" class="s-fill" style="background:linear-gradient(90deg,#ef4444,#fca5a5);width:0%"></div></div><span id="g3-v-kills" class="s-val">0</span></div>
+      </div>
+      <div class="g-panel" style="max-width:230px;">
+        <div class="mission-head">🌊 ZONE 3 OBJECTIVES</div>
+        <div class="m-task" id="g3-mt1"><span class="m-bullet">○</span><span>Collect 4 mech parts from trader <span class="m-sdg" style="background:rgba(56,189,248,.15);color:#7dd3fc;">SDG6</span></span></div>
+        <div class="m-task" id="g3-mt2"><span class="m-bullet">○</span><span>Build water pump at lake [F] <span class="m-sdg" style="background:rgba(56,189,248,.15);color:#7dd3fc;">SDG6</span></span></div>
+        <div class="m-task" id="g3-mt3"><span class="m-bullet">○</span><span>Start pump — survive purification <span class="m-sdg" style="background:rgba(56,189,248,.2);color:#38bdf8;">SDG6</span></span></div>
+        <div class="m-task" id="g3-mt4"><span class="m-bullet">○</span><span>Craft sword at Armoury [G] <span class="m-sdg" style="background:rgba(251,191,36,.12);color:#fbbf24;">SDG4</span></span></div>
+        <div class="m-task" id="g3-mt5"><span class="m-bullet">○</span><span>Defeat zombie herd · SDG10 <span class="m-sdg" style="background:rgba(140,0,80,.15);color:#f9a8d4;">SDG10</span></span></div>
+        <div class="m-task" id="g3-mt6"><span class="m-bullet">○</span><span>Defeat female herd · SDG5 <span class="m-sdg" style="background:rgba(236,72,153,.15);color:#f9a8d4;">SDG5</span></span></div>
+        <div class="m-task" id="g3-mt7"><span class="m-bullet">○</span><span>Collect 3 fish from lake [F] <span class="m-sdg" style="background:rgba(56,189,248,.12);color:#7dd3fc;">SDG14</span></span></div>
+        <div class="m-task" id="g3-mt8"><span class="m-bullet">○</span><span>Pour water &amp; deploy fish [V] <span class="m-sdg" style="background:rgba(56,189,248,.18);color:#38bdf8;">SDG14</span></span></div>
+        <div class="m-task" id="g3-mt9"><span class="m-bullet">○</span><span>Reach extraction</span></div>
+      </div>
+      <div class="g-panel" style="text-align:right;">
+        <div class="score-num" id="g3-v-score">0</div>
+        <div class="score-label">SCORE</div>
+        <div style="margin-top:6px;font-family:'Share Tech Mono';font-size:9px;color:rgba(56,189,248,.5);">ZONE 3 · NATION</div>
+      </div>
+    </div>
+    <div id="g3-sdg">
+      <div id="g3-sr-icon" style="font-size:36px;margin-bottom:6px">💧</div>
+      <div class="sdg-reveal-num" id="g3-sr-num">SDG 6</div>
+      <div class="sdg-reveal-title" id="g3-sr-title">CLEAN WATER</div>
+      <div class="sdg-reveal-desc" id="g3-sr-desc">Ensure availability of water for all.</div>
+      <div class="sdg-reveal-stat" id="g3-sr-stat">📊 2 billion people lack safe water</div>
+      <button style="background:#38bdf8;border:none;border-radius:2px;padding:10px 28px;font-family:'Bebas Neue';font-size:16px;letter-spacing:.12em;color:#0c1a2e;cursor:pointer;" onclick="g3DismissSDG()">CONTINUE MISSION →</button>
+    </div>
+    <div id="g3-dialogue">
+      <div id="g3-dl-name">ELDER MARA</div>
+      <div id="g3-dl-text"></div>
+      <button id="g3-dl-btn" onclick="g3NextDialogue()">CONTINUE →</button>
+    </div>
+    <div id="g3-toasts"></div>
+    <div id="g3-ctrl">
+      <div class="key">A/D — Move</div>
+      <div class="key">W/Space — Jump</div>
+      <div class="key">F — Attack/Build/Fish/Pump</div>
+      <div class="key">E — Trade parts</div>
+      <div class="key">G — Craft sword at Armoury</div>
+      <div class="key">V — Deploy fish into lake</div>
+      <div class="key">P — Pause</div>
+      <button class="key" onclick="g3TogglePause()" style="cursor:pointer;border-color:rgba(56,189,248,.28);color:rgba(100,200,248,.75);">⏸ PAUSE</button>
+    </div>
+    <div id="g3-overlay" style="display:none;align-items:center;justify-content:center;">
+      <div id="g3-end"></div>
+    </div>
+    <div id="g3-pause-ov">
+      <div id="pause-card">
+        <div id="pause-title" style="color:#38bdf8;">ZONE 3 PAUSED</div>
+        <div id="pause-sub">PRESS P OR CLICK RESUME</div>
+        <div id="pause-keys">
+          <div class="pk-row"><span class="pk-key">A / D</span><span class="pk-desc">Move</span></div>
+          <div class="pk-row"><span class="pk-key">W / SPACE</span><span class="pk-desc">Jump</span></div>
+          <div class="pk-row"><span class="pk-key">F</span><span class="pk-desc">Attack · Build · Fish · Pump fuse</span></div>
+          <div class="pk-row"><span class="pk-key">E</span><span class="pk-desc">Trade mech parts with Trader</span></div>
+          <div class="pk-row"><span class="pk-key">G</span><span class="pk-desc">Craft sword at Armoury</span></div>
+          <div class="pk-row"><span class="pk-key">V</span><span class="pk-desc">Deploy fish into 2nd lake</span></div>
+        </div>
+        <button id="pause-resume-btn" onclick="g3TogglePause()">▶  RESUME</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// ZONE 3 ENGINE — THE FRACTURED NATION
+// ALL vars prefixed G3/g3 — ZERO overlap with Zone 1 or Zone 2
+// SDGs: 4,5,6,10,14  |  Rain · Lightning · Lake · Water Pump
+// ═══════════════════════════════════════════════════════════════════
+const gc3=document.getElementById('gc3');
+const ctx3=gc3.getContext('2d');
+let W3,H3;
+function resizeGC3(){W3=gc3.width=window.innerWidth;H3=gc3.height=window.innerHeight;}
+window.addEventListener('resize',resizeGC3);
+
+// ── Constants ──
+const G3_GRAV=0.52,G3_JSPD=-13,G3_MSPD=4.6;
+const G3_WORLD_W=5200;
+const G3_GF=0.735;
+const G3_LAKE1_X=3200, G3_LAKE1_W=680, G3_LAKE_DEPTH=110;
+const G3_LAKE2_X=4300, G3_LAKE2_W=600;
+const G3_ARM_X=1600;   // armoury crate
+const G3_TRADER_X=900; // trader
+
+// ── State ──
+const G3={
+  running:false,frame:0,camX:0,
+  hp:100,score:0,kills:0,
+  parts:0,partsTarget:4,
+  swordCrafted:false,swordCooldown:0,attackCooldown:0,attackAnim:0,
+  armProgress:0,armNeeded:8,armBuilt:false,armInteractCooldown:0,
+  pumpBuilt:false,pumpProgress:0,pumpNeeded:10,pumpInteractCooldown:0,
+  pumpRunning:false,pumpTimer:0,pumpDone:false,waterPurified:false,
+  fishCollected:0,fishTarget:3,fishInInventory:false,
+  lake2HasWater:false,fishDeployed:false,
+  herdDefeated:false,femaleHerdDefeated:false,
+  maraPhase:0,maraActive:false,maraDialogStep:0,
+  screenShake:0,
+  win:false,lose:false,
+  extractionUnlocked:false,
+  sdgQueue:[],
+  _sdgShown:{},
+  waveTimer:0,pumpWaveSpawned:false,femaleWaveSpawned:false,
+};
+
+const g3inp={left:false,right:false,jump:false,attack:false,attackPressed:false,store:false,storePressed:false,storeUsed:false,craft:false,craftP:false,deploy:false,deployP:false};
+let G3_paused=false;
+let g3SdgPaused=false;
+
+// ── Player ──
+const P3={x:180,y:0,w:22,h:72,vx:0,vy:0,onGround:false,facing:1,walkF:0,walkT:0,walking:false};
+
+// ── World objects ──
+const g3Platforms=[
+  {x:320,yF:.52,w:110},{x:580,yF:.44,w:90},{x:820,yF:.56,w:100},
+  {x:1100,yF:.48,w:120},{x:1380,yF:.40,w:80},{x:1700,yF:.54,w:100},
+  {x:2000,yF:.46,w:90},{x:2280,yF:.52,w:120},{x:2600,yF:.42,w:100},
+  {x:2900,yF:.50,w:110},{x:3950,yF:.44,w:130},{x:4200,yF:.38,w:90},
+  {x:4600,yF:.52,w:100},{x:4900,yF:.46,w:120},
+];
+
+// Rain particles
+const g3Rain=[];
+for(let i=0;i<220;i++)g3Rain.push({x:Math.random()*G3_WORLD_W,y:Math.random()*800,spd:12+Math.random()*8,len:14+Math.random()*18,alpha:.18+Math.random()*.25});
+
+// Lightning state
+const g3Lightning={active:false,timer:0,next:120+Math.random()*300,bolt:[]};
+
+// Shelters at start
+const g3Shelters=[{x:120},{x:260},{x:400}];
+
+// Trader (mech parts)
+const g3Trader3={x:G3_TRADER_X,facing:1,dialogLine:'',dialogTimer:0};
+
+// Armoury crate
+const g3Arm3={x:G3_ARM_X,built:false};
+
+// Water pump site (at lake1 edge)
+const g3Pump={x:G3_LAKE1_X-60,built:false,fuseInserted:false};
+
+// Water tank
+const g3WaterTank={x:G3_LAKE1_X-260,filled:false};
+
+// Fish spots in lake1
+const g3FishSpots=[
+  {id:0,x:G3_LAKE1_X+120,collected:false},
+  {id:1,x:G3_LAKE1_X+340,collected:false},
+  {id:2,x:G3_LAKE1_X+560,collected:false},
+];
+
+// Debris at lake bottom
+const g3LakeDebris=[
+  {id:0,x:G3_LAKE1_X+180,dead:false},{id:1,x:G3_LAKE1_X+410,dead:false},
+];
+
+// Mech parts on ground
+const g3MechDrops=[
+  {id:0,x:500,collected:false},{id:1,x:1200,collected:false},
+  {id:2,x:2100,collected:false},{id:3,x:2800,collected:false},
+];
+
+// Zombie arrays
+const g3Zombies=[];
+const g3Floats=[],g3Particles3=[];
+
+// Mara NPC
+const g3Mara={x:180,y:0,facing:1,visible:false,moving:false,targetX:0};
+
+// ── Helpers ──
+function g3Float(x,y,txt,col){g3Floats.push({x,y,txt,col,life:1,vy:-1.8});}
+function g3Parts(x,y,col,n=8,spd=3){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2;g3Particles3.push({x,y,vx:Math.cos(a)*spd*(0.5+Math.random()),vy:Math.sin(a)*spd*(0.5+Math.random())-2,life:1,col,size:3+Math.random()*4});}}
+function g3Toast(txt,col='#38bdf8'){
+  const c=document.getElementById('g3-toasts');
+  const el=document.createElement('div');el.className='g-toast';el.style.borderLeftColor=col;el.textContent=txt;
+  c.appendChild(el);setTimeout(()=>el.remove(),3000);
+}
+function g3rr(x,y,w,h,r,fill){
+  ctx3.fillStyle=fill;ctx3.beginPath();
+  ctx3.moveTo(x+r,y);ctx3.lineTo(x+w-r,y);ctx3.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx3.lineTo(x+w,y+h-r);ctx3.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx3.lineTo(x+r,y+h);ctx3.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx3.lineTo(x,y+r);ctx3.quadraticCurveTo(x,y,x+r,y);
+  ctx3.closePath();ctx3.fill();
+}
+
+// ── SDG system ──
+function g3ShowSDG(id){
+  const defs={
+    4:{icon:'📚',num:'SDG 4',title:'QUALITY EDUCATION',desc:'Knowledge is survival infrastructure. The armoury of the mind outlasts any physical weapon — skills forged here will rebuild what war destroyed.',stat:'📊 244 million children globally are out of school'},
+    5:{icon:'♀',num:'SDG 5',title:'GENDER EQUALITY',desc:'"Male or female — for the sake of humanity, zombies are zombies." Every survivor deserves equal protection and equal voice in what we rebuild.',stat:'📊 Women represent 70% of the world\'s poorest people'},
+    6:{icon:'💧',num:'SDG 6',title:'CLEAN WATER & SANITATION',desc:'A community without clean water cannot fight disease, grow food, or build anything lasting. The water pump is not infrastructure — it is civilisation itself.',stat:'📊 2 billion people still lack access to safe drinking water'},
+    10:{icon:'⚖',num:'SDG 10',title:'REDUCED INEQUALITIES',desc:'The zombie herd follows no ideology — and neither should justice. Every survivor\'s life has equal value in the reconstruction. Inequality is itself a weapon of collapse.',stat:'📊 Inequality widened in 70% of countries post-pandemic'},
+    14:{icon:'🐟',num:'SDG 14',title:'LIFE BELOW WATER',desc:'Ecosystems do not pause for war. Restoring the fish population in the second lake is not charity — it is the food chain. Lose the water, lose everything above it.',stat:'📊 Over 30% of the world\'s fish stocks are overfished'},
+  };
+  const d=defs[id];if(!d||G3._sdgShown[id])return;
+  G3._sdgShown[id]=true;
+  document.getElementById('g3-sr-icon').textContent=d.icon;
+  document.getElementById('g3-sr-num').textContent=d.num;
+  document.getElementById('g3-sr-title').textContent=d.title;
+  document.getElementById('g3-sr-desc').textContent=d.desc;
+  document.getElementById('g3-sr-stat').textContent=d.stat;
+  document.getElementById('g3-sdg').classList.add('vis');
+  g3SdgPaused=true;
+}
+function g3DismissSDG(){
+  document.getElementById('g3-sdg').classList.remove('vis');
+  g3SdgPaused=false;
+  if(G3.sdgQueue.length>0)setTimeout(()=>g3ShowSDG(G3.sdgQueue.shift()),500);
+}
+window.g3DismissSDG=g3DismissSDG;
+
+// ── Mara dialogue ──
+const g3MaraLines=[
+  {name:'ELDER MARA',text:'Survivor… the shelters held through the storm. But the water is contaminated. The lake feeds us, yet it poisons us. We need a pump — and someone brave enough to build it.'},
+  {name:'ELDER MARA',text:'I have seen something else. Newly turned… female zombies. The infection does not discriminate. They were our neighbours. Our teachers. Our daughters. Stop them — not with hatred, but with necessity.'},
+  {name:'ELDER MARA',text:'Male or female — for the sake of humanity, zombies are zombies. And every survivor, regardless of who they were, deserves equal protection. That is the only equality that matters now.'},
+  {name:'ELDER MARA',text:'The fish in the lower lake… they are all that remain of the old ecosystem. Give them the clean water. Give them a chance. If we protect life below the surface, life above it will follow.'},
+];
+let g3DlIdx=0;
+function g3ShowDialogue(startIdx){
+  g3DlIdx=startIdx;
+  const line=g3MaraLines[g3DlIdx];
+  if(!line)return;
+  document.getElementById('g3-dl-name').textContent=line.name;
+  document.getElementById('g3-dl-text').textContent=line.text;
+  document.getElementById('g3-dialogue').style.display='block';
+  g3SdgPaused=true;
+  G3.maraActive=true;
+}
+function g3NextDialogue(){
+  g3DlIdx++;
+  if(g3DlIdx===2){
+    // After gender equality quote — SDG 5 + 10
+    G3.sdgQueue.push(5);G3.sdgQueue.push(10);
+    document.getElementById('g3-dialogue').style.display='none';
+    g3SdgPaused=false;G3.maraActive=false;
+    setTimeout(()=>{if(!g3SdgPaused)g3ShowSDG(G3.sdgQueue.shift());},400);
+    // Mara returns
+    g3Mara.moving=true;g3Mara.targetX=80;
+    return;
+  }
+  if(g3DlIdx===4){
+    document.getElementById('g3-dialogue').style.display='none';
+    g3SdgPaused=false;G3.maraActive=false;
+    g3Mara.moving=true;g3Mara.targetX=80;
+    return;
+  }
+  const line=g3MaraLines[g3DlIdx];
+  if(!line){document.getElementById('g3-dialogue').style.display='none';g3SdgPaused=false;G3.maraActive=false;return;}
+  document.getElementById('g3-dl-name').textContent=line.name;
+  document.getElementById('g3-dl-text').textContent=line.text;
+}
+window.g3NextDialogue=g3NextDialogue;
+
+// ── Physics ──
+function g3Physics(){
+  const gy=G3_GF*H3;
+  P3.walking=false;
+  if(g3inp.left){P3.vx=-G3_MSPD;P3.facing=-1;P3.walking=true;}
+  else if(g3inp.right){P3.vx=G3_MSPD;P3.facing=1;P3.walking=true;}
+  else P3.vx*=0.65;
+  if(g3inp.jump&&P3.onGround){P3.vy=G3_JSPD;P3.onGround=false;g3inp.jump=false;}
+  P3.vy=Math.min(P3.vy+G3_GRAV,20);P3.x+=P3.vx;P3.y+=P3.vy;
+  P3.onGround=false;
+  if(P3.y+P3.h>=gy){P3.y=gy-P3.h;P3.vy=0;P3.onGround=true;}
+  for(const pl of g3Platforms){
+    const py=pl.yF*H3;
+    if(P3.x+P3.w>pl.x&&P3.x<pl.x+pl.w&&P3.y+P3.h>py&&P3.y+P3.h<py+16&&P3.vy>=0){P3.y=py-P3.h;P3.vy=0;P3.onGround=true;}
+  }
+  P3.x=Math.max(20,Math.min(G3_WORLD_W-P3.w,P3.x));
+  if(P3.walking&&P3.onGround){P3.walkT++;if(P3.walkT>5){P3.walkF=(P3.walkF+1)%6;P3.walkT=0;}}else P3.walkT=0;
+  const tx=P3.x-W3*0.35;G3.camX+=(tx-G3.camX)*0.09;
+  G3.camX=Math.max(0,Math.min(G3_WORLD_W-W3,G3.camX));
+}
+
+// ── Actions ──
+function g3TryAction(){
+  if(g3SdgPaused)return;
+  const cx=P3.x+P3.w/2+P3.facing*32;
+  const gy=G3_GF*H3;
+
+  // Sword attack
+  if(G3.swordCrafted){
+    if(G3.swordCooldown>0)return;
+    G3.swordCooldown=18;G3.attackAnim=14;G3.screenShake=5;
+    for(const z of g3Zombies){
+      if(z.dead)continue;
+      if(Math.abs((z.x+16)-cx)<75){
+        z.hp-=18;z.stun=30;z.vx=P3.facing*6;
+        g3Parts(z.x-G3.camX,z.y-30,'#fbbf24',10,5);
+        g3Float(z.x-G3.camX,z.y-60,z.hp<=0?'☠ SLASH!':'-18 ⚔','#fbbf24');
+        if(z.hp<=0){z.dead=true;G3.kills++;G3.score+=220;g3Parts(z.x-G3.camX,z.y-20,'#ef4444',18,6);g3Toast('⚔ Slashed down!','#fbbf24');}
+      }
+    }
+    return;
+  }
+
+  // Melee (no sword)
+  if(G3.attackCooldown>0)return;
+  G3.attackCooldown=22;G3.attackAnim=12;G3.screenShake=4;
+  for(const z of g3Zombies){
+    if(z.dead)continue;
+    if(Math.abs((z.x+16)-cx)<65){
+      z.hp-=10;z.stun=28;z.vx=P3.facing*5;
+      g3Parts(z.x-G3.camX,z.y-30,'#a78bfa',8,5);
+      g3Float(z.x-G3.camX,z.y-60,z.hp<=0?'☠ DOWN!':'-10 🥊','#a78bfa');
+      if(z.hp<=0){z.dead=true;G3.kills++;G3.score+=180;g3Parts(z.x-G3.camX,z.y-20,'#ef4444',16,6);g3Toast('💀 Zombie down!','#ef4444');}
+    }
+  }
+
+  // Build armoury
+  if(!G3.armBuilt&&Math.abs(g3Arm3.x-cx)<70){
+    if(G3.armInteractCooldown>0)return;
+    G3.armInteractCooldown=22;G3.armProgress++;
+    g3Float(g3Arm3.x-G3.camX,gy-70,`🏗 ${G3.armProgress}/${G3.armNeeded}`,'#fdba74');
+    if(G3.armProgress>=G3.armNeeded){
+      G3.armBuilt=true;G3.score+=400;G3.screenShake=14;
+      g3Parts(g3Arm3.x-G3.camX,gy-30,'#f97316',22,6);
+      g3Toast('🏗 ARMOURY BUILT! Press G to craft sword — SDG 4','#f97316');
+      G3.sdgQueue.push(4);if(!g3SdgPaused)setTimeout(()=>g3ShowSDG(G3.sdgQueue.shift()),400);
+    }
+    return;
+  }
+
+  // Build pump
+  if(!G3.pumpBuilt&&Math.abs(g3Pump.x-cx)<70&&G3.parts>=G3.partsTarget){
+    if(G3.pumpInteractCooldown>0)return;
+    G3.pumpInteractCooldown=22;G3.pumpProgress++;
+    g3Float(g3Pump.x-G3.camX,gy-70,`🔧 ${G3.pumpProgress}/8`,'#38bdf8');
+    if(G3.pumpProgress>=8){
+      G3.pumpBuilt=true;G3.score+=500;G3.screenShake=14;
+      g3Parts(g3Pump.x-G3.camX,gy-40,'#38bdf8',22,5);
+      g3Toast('🔧 WATER PUMP BUILT! Press F again to insert fuse & start pumping — SDG 6','#38bdf8');
+    }
+    return;
+  }else if(!G3.pumpBuilt&&Math.abs(g3Pump.x-cx)<70&&G3.parts<G3.partsTarget){
+    g3Float(g3Pump.x-G3.camX,gy-70,`Need ${G3.partsTarget} parts first!`,'#ef4444');return;
+  }
+
+  // Insert fuse — start pump
+  if(G3.pumpBuilt&&!G3.pumpRunning&&!G3.pumpDone&&Math.abs(g3Pump.x-cx)<70){
+    G3.pumpRunning=true;G3.pumpTimer=0;
+    document.getElementById('g3-pump-panel').style.display='block';
+    g3Toast('⚡ PUMP STARTED! Water purifying — 30 seconds. Defend!','#38bdf8');
+    G3.screenShake=16;
+    // Spawn pump-defence zombies from both sides
+    if(!G3.pumpWaveSpawned){
+      G3.pumpWaveSpawned=true;
+      const gy2=G3_GF*H3;
+      const spawnData=[
+        {x:80,vx:2},{x:240,vx:1.8},{x:G3_LAKE1_X+G3_LAKE1_W+120,vx:-2},
+        {x:G3_LAKE1_X+G3_LAKE1_W+260,vx:-1.8},{x:G3_LAKE1_X+G3_LAKE1_W+400,vx:-2.1},
+        {x:160,vx:1.9},
+      ];
+      for(const s of spawnData)g3Zombies.push({x:s.x,y:gy2-74,vx:s.vx,hp:22,maxHp:22,dead:false,stun:0,walkF:0,female:false});
+      setTimeout(()=>g3Toast('☠ ZOMBIES FROM BOTH SIDES — defend the pump!','#ef4444'),600);
+    }
+    return;
+  }
+
+  // Fish collection at lake1
+  const inLake1=P3.x+P3.w/2>G3_LAKE1_X&&P3.x+P3.w/2<G3_LAKE1_X+G3_LAKE1_W;
+  if(inLake1&&G3.fishCollected<G3.fishTarget){
+    for(const fs of g3FishSpots){
+      if(fs.collected)continue;
+      if(Math.abs(P3.x+P3.w/2-fs.x)<90){
+        fs.collected=true;G3.fishCollected++;G3.score+=150;
+        g3Parts(fs.x-G3.camX,gy-30,'#38bdf8',12,4);
+        g3Float(fs.x-G3.camX,gy-60,`🐟 Fish! (${G3.fishCollected}/${G3.fishTarget})`,'#7dd3fc');
+        g3Toast(`🐟 Fish collected (${G3.fishCollected}/${G3.fishTarget}) — SDG 14`,'#7dd3fc');
+        if(G3.fishCollected>=G3.fishTarget){G3.fishInInventory=true;g3Toast('🐟 All fish in inventory! Go to dry lake, press V to deploy — SDG 14','#38bdf8');}
+        return;
+      }
+    }
+  }
+}
+
+function g3TryStore(){
+  if(g3SdgPaused)return;
+  // Trade mech parts from trader
+  if(Math.abs(P3.x+P3.w/2-g3Trader3.x)<95){
+    if(G3.parts>=G3.partsTarget){g3Float(g3Trader3.x-G3.camX,G3_GF*H3-80,'All parts acquired!','#4ade80');return;}
+    G3.parts++;G3.score+=200;
+    g3Parts(g3Trader3.x-G3.camX,G3_GF*H3-40,'#94a3b8',12,4);
+    g3Float(g3Trader3.x-G3.camX,G3_GF*H3-85,`⚙ +1 Part (${G3.parts}/${G3.partsTarget})`,'#94a3b8');
+    g3Toast(`⚙ Mech part acquired (${G3.parts}/${G3.partsTarget}) — SDG 6`,'#94a3b8');
+    g3Trader3.dialogLine=G3.parts>=G3.partsTarget?'That is all I have. Build your pump.':'More where that came from. Keep trading.';
+    g3Trader3.dialogTimer=180;
+    return;
+  }
+  g3Float(P3.x-G3.camX,P3.y-50,'Move to TRADER','#fdba74');
+}
+
+function g3TryCraft(){
+  if(g3SdgPaused)return;
+  if(!G3.armBuilt){g3Float(P3.x-G3.camX,P3.y-50,'Build the Armoury first [F]!','#ef4444');return;}
+  if(Math.abs(P3.x-g3Arm3.x)>85){g3Float(P3.x-G3.camX,P3.y-50,'Go to the Armoury','#fdba74');return;}
+  if(G3.swordCrafted){g3Float(P3.x-G3.camX,P3.y-50,'Sword already crafted!','#4ade80');return;}
+  G3.swordCrafted=true;G3.score+=350;G3.screenShake=12;
+  document.getElementById('g3-sword-panel').style.display='block';
+  g3Parts(g3Arm3.x-G3.camX,G3_GF*H3-40,'#fbbf24',24,6);
+  g3Toast('⚔ SWORD CRAFTED! [F] to slash — knowledge forged into skill — SDG 4','#fbbf24');
+}
+
+function g3TryDeploy(){
+  if(g3SdgPaused||!G3.fishInInventory||!G3.waterPurified)return;
+  const inLake2=P3.x+P3.w/2>G3_LAKE2_X&&P3.x+P3.w/2<G3_LAKE2_X+G3_LAKE2_W;
+  if(!inLake2){g3Float(P3.x-G3.camX,P3.y-50,'Go to the dry lake first!','#7dd3fc');return;}
+  if(G3.fishDeployed){g3Float(P3.x-G3.camX,P3.y-50,'Fish deployed!','#4ade80');return;}
+  G3.lake2HasWater=true;G3.fishDeployed=true;G3.score+=600;G3.screenShake=16;
+  g3Parts(P3.x-G3.camX,G3_GF*H3-50,'#38bdf8',28,6);
+  g3Parts(P3.x-G3.camX,G3_GF*H3-50,'#7dd3fc',20,4);
+  g3Float(P3.x-G3.camX,G3_GF*H3-90,'🐟 ECOSYSTEM RESTORED!','#38bdf8');
+  g3Toast('🐟 Fish deployed into clean lake! Ecosystem restored — SDG 14 ✓','#38bdf8');
+  G3.sdgQueue.push(14);if(!g3SdgPaused)setTimeout(()=>g3ShowSDG(G3.sdgQueue.shift()),500);
+}
+
+// ── Updates ──
+function g3UpdateZombies(){
+  const gy=G3_GF*H3;
+  for(const z of g3Zombies){
+    if(z.dead)continue;
+    z.y=gy-74;
+    if(z.stun>0){z.stun--;continue;}
+    const dx=(P3.x+P3.w/2)-(z.x+16);
+    if(Math.abs(dx)<560)z.vx=dx>0?1.9:-1.9;
+    else if(z.x<80||z.x>G3_WORLD_W-80)z.vx*=-1;
+    z.x+=z.vx;z.x=Math.max(40,Math.min(G3_WORLD_W-40,z.x));
+    z.walkF=(z.walkF+0.15)%6;
+    if(Math.abs(dx)<34&&G3.frame%60===0){
+      G3.hp=Math.max(0,G3.hp-10);G3.screenShake=8;
+      g3Float(P3.x-G3.camX,P3.y-40,'-10 HP 🧟','#ef4444');
+      if(G3.hp<=0)g3TriggerDeath();
+    }
+  }
+  // Check herd defeated
+  if(!G3.herdDefeated&&G3.pumpWaveSpawned){
+    const pumpZombies=g3Zombies.filter(z=>!z.female);
+    if(pumpZombies.length>0&&pumpZombies.every(z=>z.dead)){
+      G3.herdDefeated=true;G3.score+=300;
+      g3Toast('💀 Zombie herd defeated! Water pump is safe!','#4ade80');
+      G3.sdgQueue.push(10);if(!g3SdgPaused)setTimeout(()=>g3ShowSDG(G3.sdgQueue.shift()),400);
+      // Mara rushes out
+      setTimeout(()=>{
+        g3Mara.visible=true;g3Mara.x=80;g3Mara.y=G3_GF*H3-80;
+        g3Mara.moving=true;g3Mara.targetX=P3.x-80;
+        setTimeout(()=>{
+          g3Mara.moving=false;
+          g3ShowDialogue(0);
+          // Spawn female herd after first dialogue
+          setTimeout(()=>{
+            if(!G3.femaleWaveSpawned){
+              G3.femaleWaveSpawned=true;
+              const gy2=G3_GF*H3;
+              for(let fi=0;fi<4;fi++)g3Zombies.push({x:G3_LAKE1_X+200+fi*120,y:gy2-74,vx:-1.8+fi*.1,hp:18,maxHp:18,dead:false,stun:0,walkF:0,female:true});
+              g3Toast('⚠ FEMALE ZOMBIE HERD APPROACHING — they were civilians!','#ec4899');
+            }
+          },2800);
+        },2000);
+      },1200);
+    }
+  }
+  // Check female herd defeated
+  if(!G3.femaleHerdDefeated&&G3.femaleWaveSpawned){
+    const femZombies=g3Zombies.filter(z=>z.female);
+    if(femZombies.length>0&&femZombies.every(z=>z.dead)){
+      G3.femaleHerdDefeated=true;G3.score+=280;
+      g3Toast('⚔ Female herd defeated. Equality in survival.','#ec4899');
+      G3.sdgQueue.push(5);if(!g3SdgPaused)setTimeout(()=>g3ShowSDG(G3.sdgQueue.shift()),400);
+      // Mara's final speech
+      setTimeout(()=>{
+        g3Mara.visible=true;g3Mara.moving=true;g3Mara.targetX=P3.x-80;
+        setTimeout(()=>{g3Mara.moving=false;g3ShowDialogue(2);},1800);
+      },1000);
+    }
+  }
+}
+
+function g3UpdatePump(){
+  if(!G3.pumpRunning||G3.pumpDone)return;
+  G3.pumpTimer++;
+  const pct=Math.min(1,G3.pumpTimer/(30*60)); // 30 seconds at 60fps
+  document.getElementById('g3-pump-fill').style.width=(pct*100)+'%';
+  document.getElementById('g3-v-pump').textContent=Math.floor(pct*100)+'%';
+  if(pct>=1&&!G3.pumpDone){
+    G3.pumpDone=true;G3.waterPurified=true;G3.score+=800;G3.screenShake=20;
+    g3WaterTank.filled=true;
+    g3Parts(g3WaterTank.x-G3.camX,G3_GF*H3-60,'#38bdf8',30,6);
+    g3Toast('💧 WATER PURIFIED! Tank filled — SDG 6 ✓. Collect fish and deploy [V] into dry lake!','#38bdf8');
+    document.getElementById('g3-v-pump').textContent='DONE ✓';
+    G3.sdgQueue.push(6);if(!g3SdgPaused)setTimeout(()=>g3ShowSDG(G3.sdgQueue.shift()),500);
+  }
+}
+
+function g3UpdateMara(){
+  if(!g3Mara.visible||!g3Mara.moving)return;
+  const dx=g3Mara.targetX-g3Mara.x;
+  const spd=3.2; // 1.5x normal speed
+  if(Math.abs(dx)<6){g3Mara.moving=false;g3Mara.x=g3Mara.targetX;return;}
+  g3Mara.x+=Math.sign(dx)*spd;
+  g3Mara.facing=Math.sign(dx);
+}
+
+function g3UpdatePickups(){
+  const gy=G3_GF*H3;
+  for(const mp of g3MechDrops){
+    if(mp.collected)continue;
+    if(Math.abs(P3.x+P3.w/2-mp.x)<50&&Math.abs(P3.y+P3.h-gy)<60){
+      mp.collected=true;
+      g3Toast('💡 Mech part found on ground! Keep collecting or trade for more.','#94a3b8');
+    }
+  }
+}
+
+function g3CheckWin(){
+  if(G3.win||G3.lose)return;
+  const allDone=G3.waterPurified&&G3.herdDefeated&&G3.femaleHerdDefeated&&G3.fishDeployed&&G3.swordCrafted;
+  if(allDone&&!G3.extractionUnlocked){
+    G3.extractionUnlocked=true;
+    g3Toast('✅ ALL OBJECTIVES COMPLETE! Reach EXTRACTION →','#4ade80');G3.screenShake=12;
+  }
+  if(G3.extractionUnlocked&&P3.x>G3_WORLD_W-300){G3.win=true;G3.running=false;g3ShowEnd();}
+}
+
+function g3TriggerDeath(){
+  G3.lose=true;G3.running=false;g3ShowEnd();
+}
+
+// ── Lightning ──
+function g3UpdateLightning(){
+  if(g3Lightning.active){
+    g3Lightning.timer--;
+    if(g3Lightning.timer<=0)g3Lightning.active=false;
+  }else{
+    g3Lightning.next--;
+    if(g3Lightning.next<=0){
+      g3Lightning.active=true;g3Lightning.timer=8+Math.floor(Math.random()*10);
+      g3Lightning.next=180+Math.floor(Math.random()*400);
+      // Generate bolt path
+      g3Lightning.bolt=[];
+      let bx=100+Math.random()*(W3-200),by=0;
+      g3Lightning.bolt.push({x:bx,y:by});
+      while(by<H3*.85){by+=20+Math.random()*25;bx+=(Math.random()-.5)*60;g3Lightning.bolt.push({x:bx,y:by});}
+    }
+  }
+}
+
+// ── Drawing ──
+function g3DrawBG(){
+  const gy=G3_GF*H3;
+  // Stormy sky gradient
+  const sg=ctx3.createLinearGradient(0,0,0,gy);
+  sg.addColorStop(0,'#060810');sg.addColorStop(.3,'#0a0d18');sg.addColorStop(.7,'#0e1020');sg.addColorStop(1,'#141828');
+  ctx3.fillStyle=sg;ctx3.fillRect(0,0,W3,gy);
+
+  // Lightning flash background
+  if(g3Lightning.active&&g3Lightning.timer>5){
+    ctx3.fillStyle=`rgba(180,200,255,${(g3Lightning.timer-5)/3*.08})`;ctx3.fillRect(0,0,W3,H3);
+  }
+
+  // Storm clouds
+  ctx3.save();ctx3.globalAlpha=.55;
+  for(let ci=0;ci<12;ci++){
+    const cx=((ci*380+120)-G3.camX*.06)%W3;const cy=22+((ci*31)%65);const cr=60+((ci*17)%80);
+    const cg=ctx3.createRadialGradient(cx,cy,0,cx,cy,cr);
+    cg.addColorStop(0,`rgba(${14+ci%3*4},${16+ci%3*3},${28+ci%3*6},.85)`);cg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx3.fillStyle=cg;ctx3.beginPath();ctx3.ellipse(cx,cy,cr,cr*.5,0,0,Math.PI*2);ctx3.fill();
+  }
+  ctx3.restore();
+
+  // Distant ruins silhouette
+  ctx3.save();ctx3.globalAlpha=.08;
+  for(let i=0;i<12;i++){const bx=((i*340+80)-G3.camX*.14)%W3;const bh=35+i*16;ctx3.fillStyle='#0c0e18';ctx3.fillRect(bx,gy-bh,38+i*5,bh);}
+  ctx3.restore();
+
+  // Background trees — rain-silhouetted
+  for(let i=0;i<20;i++){
+    const bx=(i*210+60)-G3.camX*.25;if(bx<-160||bx>W3+160)continue;
+    const tH=55+((i*19)%60);const tw=8+((i*7)%8);
+    ctx3.save();ctx3.globalAlpha=.14+((i*5)%5)*.012;ctx3.fillStyle='#0c0e18';
+    ctx3.fillRect(bx-tw/2,gy-tH,tw,tH);
+    ctx3.beginPath();ctx3.ellipse(bx,gy-tH-12,22+((i*5)%14),18+((i*3)%10),0,0,Math.PI*2);ctx3.fill();
+    ctx3.restore();
+  }
+
+  // Ground
+  ctx3.fillStyle='#0e1018';ctx3.fillRect(0,gy,W3,H3-gy+2);
+  ctx3.fillStyle='#141828';ctx3.fillRect(0,gy,W3,4);
+  // Wet ground puddles
+  for(let pi=0;pi<14;pi++){
+    const px=((pi*320+G3.camX*.12)%W3);
+    const pg=ctx3.createRadialGradient(px,gy+4,0,px,gy+4,30+pi*4);
+    pg.addColorStop(0,'rgba(56,100,180,.18)');pg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx3.fillStyle=pg;ctx3.beginPath();ctx3.ellipse(px,gy+5,30+pi*3,6,0,0,Math.PI*2);ctx3.fill();
+  }
+
+  // Platforms
+  for(const pl of g3Platforms){
+    const px=pl.x-G3.camX,py=pl.yF*H3;if(px<-200||px>W3+200)continue;
+    g3rr(px,py,pl.w,12,3,'#1e2234');
+    ctx3.strokeStyle='rgba(56,100,200,.25)';ctx3.lineWidth=1;ctx3.beginPath();ctx3.moveTo(px+4,py+6);ctx3.lineTo(px+pl.w-4,py+6);ctx3.stroke();
+  }
+
+  // Shelters at start
+  for(const sh of g3Shelters){
+    const shx=sh.x-G3.camX;if(shx<-160||shx>W3+160)continue;
+    const shH=80,shW=100,shT=gy-shH;
+    ctx3.fillStyle='#2a1e12';ctx3.fillRect(shx,shT,shW,shH);
+    // Wood planks
+    ctx3.strokeStyle='rgba(0,0,0,.4)';ctx3.lineWidth=1.5;
+    for(let pl=shx+10;pl<shx+shW-6;pl+=11){ctx3.beginPath();ctx3.moveTo(pl,shT+2);ctx3.lineTo(pl,gy-2);ctx3.stroke();}
+    // Roof
+    ctx3.fillStyle='#1e1408';ctx3.beginPath();ctx3.moveTo(shx-8,shT);ctx3.lineTo(shx+shW/2,shT-35);ctx3.lineTo(shx+shW+8,shT);ctx3.closePath();ctx3.fill();
+    // Door
+    g3rr(shx+38,shT+24,24,shH-26,2,'#0e0a06');
+    // Warm light from window
+    const wglow=ctx3.createRadialGradient(shx+20,shT+22,0,shx+20,shT+22,28);
+    wglow.addColorStop(0,'rgba(200,120,20,.18)');wglow.addColorStop(1,'rgba(0,0,0,0)');
+    ctx3.fillStyle=wglow;ctx3.fillRect(shx,shT,shW,60);
+    g3rr(shx+10,shT+18,18,12,2,'rgba(200,120,20,.2)');
+  }
+
+  // LAKE 1 — main water lake (wide)
+  const l1x=G3_LAKE1_X-G3.camX;
+  if(l1x>-G3_LAKE1_W-100&&l1x<W3+100){
+    // Water fill
+    const wg=ctx3.createLinearGradient(l1x,gy-G3_LAKE_DEPTH,l1x,gy);
+    wg.addColorStop(0,'rgba(16,40,100,.65)');wg.addColorStop(.5,'rgba(20,60,140,.8)');wg.addColorStop(1,'rgba(10,30,80,.9)');
+    ctx3.fillStyle=wg;ctx3.beginPath();
+    ctx3.moveTo(l1x,gy-G3_LAKE_DEPTH);ctx3.lineTo(l1x+G3_LAKE1_W,gy-G3_LAKE_DEPTH);
+    ctx3.lineTo(l1x+G3_LAKE1_W,gy);ctx3.lineTo(l1x,gy);ctx3.closePath();ctx3.fill();
+    // Ripples
+    const rippleT=G3.frame*.04;
+    for(let ri=0;ri<5;ri++){
+      const rx=l1x+80+ri*120;const ry=gy-G3_LAKE_DEPTH*.4+Math.sin(rippleT+ri)*.8;
+      ctx3.strokeStyle='rgba(100,160,255,.12)';ctx3.lineWidth=1;
+      ctx3.beginPath();ctx3.ellipse(rx,ry,30+ri*8,5,0,0,Math.PI*2);ctx3.stroke();
+    }
+    // Rain drops hitting water
+    for(let rd=0;rd<8;rd++){
+      const rdx=l1x+Math.sin(G3.frame*.08+rd*0.8)*40+rd*75;
+      const rdT=(G3.frame*.06+rd*0.4)%1;
+      ctx3.strokeStyle=`rgba(160,200,255,${.3*(1-rdT)})`;ctx3.lineWidth=1;
+      ctx3.beginPath();ctx3.ellipse(rdx,gy-G3_LAKE_DEPTH*.05,(rdT*18),rdT*4,0,0,Math.PI*2);ctx3.stroke();
+    }
+    // Lake edges
+    ctx3.strokeStyle='rgba(40,80,160,.45)';ctx3.lineWidth=3;
+    ctx3.beginPath();ctx3.moveTo(l1x,gy-G3_LAKE_DEPTH);ctx3.lineTo(l1x,gy);ctx3.stroke();
+    ctx3.beginPath();ctx3.moveTo(l1x+G3_LAKE1_W,gy-G3_LAKE_DEPTH);ctx3.lineTo(l1x+G3_LAKE1_W,gy);ctx3.stroke();
+    ctx3.fillStyle='rgba(16,40,100,.4)';ctx3.fillRect(l1x,gy-G3_LAKE_DEPTH,G3_LAKE1_W,3);
+    // Fish in water
+    for(const fs of g3FishSpots){
+      if(fs.collected)continue;
+      const fsx=fs.x-G3.camX;const bob=Math.sin(G3.frame*.08+fs.id)*.8;
+      ctx3.save();ctx3.translate(fsx,gy-G3_LAKE_DEPTH*.35+bob);
+      ctx3.shadowColor='#7dd3fc';ctx3.shadowBlur=7;
+      ctx3.fillStyle='#38bdf8';
+      ctx3.beginPath();ctx3.ellipse(0,0,9,5,0,0,Math.PI*2);ctx3.fill();
+      ctx3.fillStyle='#7dd3fc';ctx3.beginPath();ctx3.moveTo(-9,0);ctx3.lineTo(-15,-5);ctx3.lineTo(-15,5);ctx3.closePath();ctx3.fill();
+      ctx3.shadowBlur=0;ctx3.restore();
+      const nearFish=Math.abs(P3.x+P3.w/2-fs.x)<90;
+      if(nearFish){ctx3.font='bold 9px "Share Tech Mono"';ctx3.fillStyle='#7dd3fc';ctx3.textAlign='center';ctx3.fillText('[F] CATCH FISH',fsx,gy-G3_LAKE_DEPTH*.7);}
+    }
+    // Label
+    ctx3.font='bold 9px "Share Tech Mono"';ctx3.fillStyle='rgba(56,189,248,.5)';ctx3.textAlign='center';
+    ctx3.fillText('LAKE — WATER SOURCE',l1x+G3_LAKE1_W/2,gy-G3_LAKE_DEPTH-12);
+  }
+
+  // LAKE 2 — dry lake (fish deployment)
+  const l2x=G3_LAKE2_X-G3.camX;
+  if(l2x>-G3_LAKE2_W-100&&l2x<W3+100){
+    if(G3.lake2HasWater){
+      // Filled with clean water
+      const wg2=ctx3.createLinearGradient(l2x,gy-80,l2x,gy);
+      wg2.addColorStop(0,'rgba(56,189,248,.5)');wg2.addColorStop(1,'rgba(14,80,160,.7)');
+      ctx3.fillStyle=wg2;ctx3.beginPath();
+      ctx3.moveTo(l2x,gy-80);ctx3.lineTo(l2x+G3_LAKE2_W,gy-80);ctx3.lineTo(l2x+G3_LAKE2_W,gy);ctx3.lineTo(l2x,gy);ctx3.closePath();ctx3.fill();
+      // Deployed fish
+      for(let df=0;df<6;df++){
+        const dfx=l2x+70+df*85+Math.sin(G3.frame*.05+df)*15;const dfy=gy-40+Math.sin(G3.frame*.07+df)*8;
+        ctx3.fillStyle='rgba(56,189,248,.8)';ctx3.beginPath();ctx3.ellipse(dfx,dfy,8,4,0,0,Math.PI*2);ctx3.fill();
+      }
+      ctx3.font='bold 9px "Share Tech Mono"';ctx3.fillStyle='rgba(56,189,248,.8)';ctx3.textAlign='center';ctx3.fillText('🐟 ECOSYSTEM RESTORED — SDG 14 ✓',l2x+G3_LAKE2_W/2,gy-90);
+    }else{
+      // Dry cracked bed
+      ctx3.fillStyle='#0e0c08';ctx3.beginPath();
+      ctx3.moveTo(l2x,gy-55);ctx3.lineTo(l2x+G3_LAKE2_W,gy-55);ctx3.lineTo(l2x+G3_LAKE2_W,gy);ctx3.lineTo(l2x,gy);ctx3.closePath();ctx3.fill();
+      // Cracks
+      ctx3.strokeStyle='rgba(60,50,30,.6)';ctx3.lineWidth=1;
+      for(let c=0;c<10;c++){const cx2=l2x+40+c*52;ctx3.beginPath();ctx3.moveTo(cx2,gy-50+c%3*5);ctx3.lineTo(cx2+(c%2?14:-14),gy-30+c%2*10);ctx3.stroke();}
+      const nearL2=P3.x+P3.w/2>G3_LAKE2_X&&P3.x+P3.w/2<G3_LAKE2_X+G3_LAKE2_W;
+      ctx3.font='bold 9px "Share Tech Mono"';ctx3.fillStyle=nearL2&&G3.fishInInventory&&G3.waterPurified?'#38bdf8':'rgba(100,90,60,.5)';ctx3.textAlign='center';
+      ctx3.fillText(nearL2&&G3.fishInInventory&&G3.waterPurified?'[V] DEPLOY FISH + WATER':'DRY LAKE — Needs water & fish (SDG 14)',l2x+G3_LAKE2_W/2,gy-65);
+    }
+    ctx3.strokeStyle='rgba(40,60,100,.4)';ctx3.lineWidth=2;
+    ctx3.beginPath();ctx3.moveTo(l2x,gy-55);ctx3.lineTo(l2x,gy);ctx3.stroke();
+    ctx3.beginPath();ctx3.moveTo(l2x+G3_LAKE2_W,gy-55);ctx3.lineTo(l2x+G3_LAKE2_W,gy);ctx3.stroke();
+  }
+
+  // WATER PUMP site
+  const px=g3Pump.x-G3.camX;if(px>-120&&px<W3+120){
+    if(!G3.pumpBuilt){
+      // Scaffold
+      const prog=G3.pumpProgress/8;
+      ctx3.save();ctx3.setLineDash([4,4]);ctx3.strokeStyle=`rgba(56,189,248,${.2+prog*.3})`;ctx3.lineWidth=1.5;ctx3.strokeRect(px-42,gy-90,84,90);ctx3.setLineDash([]);ctx3.restore();
+      ctx3.strokeStyle='#2a3860';ctx3.lineWidth=3;
+      ctx3.beginPath();ctx3.moveTo(px-36,gy);ctx3.lineTo(px-36,gy-84);ctx3.stroke();
+      ctx3.beginPath();ctx3.moveTo(px+36,gy);ctx3.lineTo(px+36,gy-84);ctx3.stroke();
+      ctx3.strokeStyle='#1e2848';ctx3.lineWidth=2;
+      for(let sc=gy-16;sc>gy-82;sc-=20){ctx3.beginPath();ctx3.moveTo(px-36,sc);ctx3.lineTo(px+36,sc);ctx3.stroke();}
+      const nearP=Math.abs(P3.x-g3Pump.x)<75;
+      ctx3.font='bold 9px "Share Tech Mono"';ctx3.fillStyle=nearP&&G3.parts>=G3.partsTarget?'#38bdf8':'rgba(56,189,248,.4)';ctx3.textAlign='center';
+      ctx3.fillText(nearP?(G3.parts>=G3.partsTarget?'[F] BUILD PUMP':'Need 4 parts first!'):'PUMP SITE — SDG 6',px,gy-100);
+      ctx3.fillText(`${G3.pumpProgress}/8`,px,gy-88);
+    }else{
+      // Built pump — industrial water pump with pipe into lake
+      g3rr(px-40,gy-100,80,100,4,'#1e2a3a');
+      ctx3.strokeStyle='rgba(56,189,248,.2)';ctx3.lineWidth=2;
+      for(let pl=px-28;pl<px+32;pl+=14){ctx3.beginPath();ctx3.moveTo(pl,gy-98);ctx3.lineTo(pl,gy-4);ctx3.stroke();}
+      // Pump motor cylinder
+      g3rr(px-14,gy-80,28,44,4,'#243048');ctx3.strokeStyle='rgba(56,189,248,.35)';ctx3.lineWidth=1.5;ctx3.strokeRect(px-14,gy-80,28,44);
+      // Pipe into lake
+      ctx3.strokeStyle='#2a4060';ctx3.lineWidth=8;ctx3.lineCap='round';
+      ctx3.beginPath();ctx3.moveTo(px+14,gy-50);ctx3.lineTo(px+80,gy-50);ctx3.lineTo(px+80,gy);ctx3.stroke();
+      // Running animation
+      if(G3.pumpRunning&&!G3.pumpDone){
+        const spin=G3.frame*.12;
+        ctx3.save();ctx3.translate(px,gy-58);ctx3.rotate(spin);
+        ctx3.strokeStyle='rgba(56,189,248,.6)';ctx3.lineWidth=2;
+        for(let s=0;s<4;s++){ctx3.beginPath();ctx3.moveTo(0,0);const ang=s*Math.PI/2;ctx3.lineTo(Math.cos(ang)*10,Math.sin(ang)*10);ctx3.stroke();}
+        ctx3.restore();
+        // Water particles
+        if(G3.frame%4===0){g3Parts(px+80-G3.camX,gy-20,'#38bdf8',3,2);}
+      }
+      // Done glow
+      if(G3.pumpDone){ctx3.shadowColor='#38bdf8';ctx3.shadowBlur=18;ctx3.strokeStyle='rgba(56,189,248,.45)';ctx3.lineWidth=2;ctx3.strokeRect(px-42,gy-102,84,102);ctx3.shadowBlur=0;}
+      const nearP=Math.abs(P3.x-g3Pump.x)<75;
+      ctx3.font='bold 9px "Share Tech Mono"';ctx3.fillStyle=nearP?'#38bdf8':'rgba(56,189,248,.5)';ctx3.textAlign='center';
+      ctx3.fillText(G3.pumpDone?'💧 PUMP COMPLETE — SDG 6 ✓':G3.pumpRunning?'PUMPING...':'[F] INSERT FUSE',px,gy-112);
+    }
+  }
+
+  // WATER TANK
+  const wtx=g3WaterTank.x-G3.camX;if(wtx>-100&&wtx<W3+100){
+    g3rr(wtx-24,gy-90,48,90,3,'#1a2436');
+    ctx3.strokeStyle='rgba(56,189,248,.2)';ctx3.lineWidth=1.5;ctx3.strokeRect(wtx-24,gy-90,48,90);
+    // Fill level
+    if(g3WaterTank.filled){
+      ctx3.fillStyle='rgba(16,80,160,.6)';ctx3.fillRect(wtx-22,gy-88,44,86);
+      ctx3.shadowColor='#38bdf8';ctx3.shadowBlur=14;ctx3.strokeStyle='rgba(56,189,248,.5)';ctx3.lineWidth=2;ctx3.strokeRect(wtx-24,gy-90,48,90);ctx3.shadowBlur=0;
+      ctx3.font='7px "Share Tech Mono"';ctx3.fillStyle='#7dd3fc';ctx3.textAlign='center';ctx3.fillText('CLEAN',wtx,gy-50);ctx3.fillText('WATER',wtx,gy-40);ctx3.fillText('SDG 6 ✓',wtx,gy-28);
+    }else{
+      ctx3.font='7px "Share Tech Mono"';ctx3.fillStyle='rgba(56,189,248,.3)';ctx3.textAlign='center';ctx3.fillText('WATER',wtx,gy-50);ctx3.fillText('TANK',wtx,gy-40);
+    }
+    ctx3.font='8px "Share Tech Mono"';ctx3.fillStyle='rgba(56,189,248,.4)';ctx3.textAlign='center';ctx3.fillText('💧 TANK',wtx,gy-102);
+  }
+
+  // ARMOURY CRATE
+  const acx=g3Arm3.x-G3.camX;if(acx>-120&&acx<W3+120){
+    if(!G3.armBuilt){
+      // Pre-build crate
+      g3rr(acx-28,gy-52,56,52,3,'#3a2810');ctx3.strokeStyle='#5a4020';ctx3.lineWidth=2;ctx3.strokeRect(acx-28,gy-52,56,52);
+      ctx3.beginPath();ctx3.moveTo(acx-28,gy-26);ctx3.lineTo(acx+28,gy-26);ctx3.stroke();ctx3.beginPath();ctx3.moveTo(acx,gy-52);ctx3.lineTo(acx,gy);ctx3.stroke();
+      const prog=G3.armProgress/G3.armNeeded;if(prog>0){ctx3.fillStyle='rgba(249,115,22,.35)';ctx3.fillRect(acx-26,gy-50,52*prog,48);}
+      const nearA=Math.abs(P3.x-g3Arm3.x)<75;
+      ctx3.font='bold 9px "Share Tech Mono"';ctx3.fillStyle=nearA?'#f97316':'rgba(249,115,22,.45)';ctx3.textAlign='center';ctx3.fillText('[F] BREAK OPEN ARMOURY',acx,gy-62);ctx3.fillText(`${G3.armProgress}/${G3.armNeeded}`,acx,gy-50);
+    }else{
+      // Open crate — sword inside visible
+      g3rr(acx-28,gy-45,56,45,3,'#2a1e0e');ctx3.strokeStyle='#6a4820';ctx3.lineWidth=2;ctx3.strokeRect(acx-28,gy-45,56,45);
+      // Sword glyph
+      const nearA=Math.abs(P3.x-g3Arm3.x)<85;
+      ctx3.font='22px sans-serif';ctx3.textAlign='center';ctx3.shadowColor='#fbbf24';ctx3.shadowBlur=nearA?14:6;ctx3.fillText('⚔',acx,gy-12);ctx3.shadowBlur=0;
+      ctx3.font='bold 9px "Share Tech Mono"';ctx3.fillStyle=nearA&&!G3.swordCrafted?'#fbbf24':'rgba(251,191,36,.45)';
+      ctx3.fillText(G3.swordCrafted?'⚔ SWORD CRAFTED ✓':nearA?'[G] CRAFT SWORD':'ARMOURY — SDG 4',acx,gy-58);
+    }
+  }
+
+  // TRADER NPC
+  const tr3x=g3Trader3.x-G3.camX;const nearTr3=Math.abs(P3.x+P3.w/2-g3Trader3.x)<95;
+  ctx3.save();
+  // Stall canopy
+  for(let sc=0;sc<5;sc++){ctx3.fillStyle=sc%2?'#1e1208':'#2a1808';ctx3.beginPath();ctx3.moveTo(tr3x-52+sc*22,gy-110);ctx3.lineTo(tr3x-42+sc*22,gy-110);ctx3.lineTo(tr3x-40+sc*22,gy-88);ctx3.lineTo(tr3x-54+sc*22,gy-88);ctx3.closePath();ctx3.fill();}
+  ctx3.strokeStyle='#4a2e10';ctx3.lineWidth=3;ctx3.lineCap='round';
+  ctx3.beginPath();ctx3.moveTo(tr3x-56,gy);ctx3.lineTo(tr3x-56,gy-120);ctx3.stroke();
+  ctx3.beginPath();ctx3.moveTo(tr3x+48,gy);ctx3.lineTo(tr3x+48,gy-120);ctx3.stroke();
+  ctx3.beginPath();ctx3.moveTo(tr3x-62,gy-120);ctx3.lineTo(tr3x+54,gy-120);ctx3.stroke();
+  ctx3.fillStyle='#4a2c14';ctx3.fillRect(tr3x-48,gy-50,96,9);
+  // Parts on table
+  for(let ti=0;ti<4;ti++){g3rr(tr3x-36+ti*20,gy-58,14,8,2,'#5a6878');ctx3.strokeStyle='rgba(140,160,180,.4)';ctx3.lineWidth=1;ctx3.strokeRect(tr3x-36+ti*20,gy-58,14,8);}
+  ctx3.font='bold 10px "Share Tech Mono"';ctx3.fillStyle=nearTr3?'#fde68a':'rgba(200,170,100,.4)';ctx3.textAlign='center';ctx3.fillText('MECHANIC — TRADER',tr3x,gy-130);
+  ctx3.font='8px "Share Tech Mono"';ctx3.fillStyle=nearTr3?'#94a3b8':'rgba(148,163,184,.3)';
+  ctx3.fillText(nearTr3?`[E] TRADE PARTS (${G3.parts}/${G3.partsTarget})`:'SDG 6 · Mech Parts',tr3x,gy-118);
+  if(g3Trader3.dialogTimer>0&&g3Trader3.dialogLine){
+    const alpha=Math.min(1,g3Trader3.dialogTimer/18);ctx3.globalAlpha=alpha;
+    const bW2=Math.min(220,g3Trader3.dialogLine.length*7+24);
+    g3rr(tr3x-bW2/2,gy-152,bW2,22,4,'rgba(4,6,14,.95)');ctx3.strokeStyle='rgba(56,189,248,.4)';ctx3.lineWidth=1;ctx3.strokeRect(tr3x-bW2/2,gy-152,bW2,22);
+    ctx3.font='10px Barlow';ctx3.fillStyle='rgba(220,210,185,.9)';ctx3.fillText(g3Trader3.dialogLine,tr3x,gy-137);ctx3.globalAlpha=1;
+  }
+  ctx3.restore();
+
+  // Mech drops on ground
+  for(const mp of g3MechDrops){
+    if(mp.collected)continue;
+    const mpx=mp.x-G3.camX;if(mpx<-60||mpx>W3+60)continue;
+    const bob=Math.sin(G3.frame*.09+mp.id)*2.5;
+    ctx3.save();ctx3.translate(mpx,gy-26+bob);
+    ctx3.shadowColor='#94a3b8';ctx3.shadowBlur=8;
+    ctx3.fillStyle='#4a5568';g3rr(-9,-10,18,12,2,'#4a5568');
+    ctx3.fillStyle='#718096';ctx3.beginPath();ctx3.arc(0,-4,3,0,Math.PI*2);ctx3.fill();
+    ctx3.shadowBlur=0;ctx3.font='7px "Share Tech Mono"';ctx3.fillStyle='rgba(148,163,184,.6)';ctx3.textAlign='center';ctx3.fillText('PART',0,-18);
+    ctx3.restore();
+  }
+}
+
+function g3DrawRain(){
+  const gy=G3_GF*H3;
+  ctx3.save();
+  for(const r of g3Rain){
+    const sx=(r.x-G3.camX*.15)%W3;
+    ctx3.strokeStyle=`rgba(140,170,220,${r.alpha})`;ctx3.lineWidth=1;
+    ctx3.beginPath();ctx3.moveTo(sx,r.y);ctx3.lineTo(sx-3,r.y+r.len);ctx3.stroke();
+  }
+  ctx3.restore();
+}
+
+function g3UpdateRain(){
+  for(const r of g3Rain){
+    r.y+=r.spd;
+    if(r.y>H3){r.y=-20;r.x=Math.random()*G3_WORLD_W;}
+  }
+}
+
+function g3DrawLightning(){
+  if(!g3Lightning.active||g3Lightning.bolt.length<2)return;
+  ctx3.save();
+  // Background flash
+  ctx3.fillStyle=`rgba(200,220,255,${g3Lightning.timer*.008})`;ctx3.fillRect(0,0,W3,H3);
+  // Bolt
+  ctx3.shadowColor='#c8d8ff';ctx3.shadowBlur=20;ctx3.strokeStyle=`rgba(200,220,255,${.6+g3Lightning.timer*.04})`;ctx3.lineWidth=2.5;
+  ctx3.beginPath();ctx3.moveTo(g3Lightning.bolt[0].x,g3Lightning.bolt[0].y);
+  for(let bi=1;bi<g3Lightning.bolt.length;bi++)ctx3.lineTo(g3Lightning.bolt[bi].x,g3Lightning.bolt[bi].y);
+  ctx3.stroke();
+  ctx3.shadowBlur=0;ctx3.restore();
+}
+
+function g3DrawZombies(){
+  const gy=G3_GF*H3;
+  for(const z of g3Zombies){
+    if(z.dead)continue;
+    const zx=z.x-G3.camX;const d=z.vx>=0?1:-1;const bob=Math.sin(G3.frame*.1)*1.2;
+    ctx3.save();ctx3.translate(zx+16,gy+bob);
+    ctx3.fillStyle='rgba(0,0,0,.3)';ctx3.beginPath();ctx3.ellipse(0,0,12,3,0,0,Math.PI*2);ctx3.fill();
+    const ls=Math.sin(z.walkF*Math.PI/3)*8;
+    // Body
+    g3rr(-10,-52,20,26,5,z.female?'#3a1828':'#1a2a08');
+    // Female zombies have distinctly different colour
+    if(z.female){
+      g3rr((-7*d-ls/2),-26,8,24,3,'#2a1020');g3rr((2*d+ls/2),-26,8,24,3,'#2a1020');
+      ctx3.fillStyle='#2a1020';g3rr((-12*d),-52,8,18,4,'#3a1828');
+    }else{
+      g3rr((-7*d-ls/2),-26,8,24,3,'#1a2a08');g3rr((2*d+ls/2),-26,8,24,3,'#1a2a08');
+    }
+    // Head
+    ctx3.shadowColor=z.female?'rgba(200,60,120,.4)':'rgba(60,200,20,.3)';ctx3.shadowBlur=6;
+    ctx3.fillStyle=z.female?'#3a2030':'#2a3a10';
+    ctx3.beginPath();ctx3.ellipse(0,-66,13,14,0,0,Math.PI*2);ctx3.fill();ctx3.shadowBlur=0;
+    // Eyes
+    ctx3.fillStyle=z.female?'rgba(240,80,140,.9)':'rgba(80,220,20,.9)';ctx3.shadowColor=ctx3.fillStyle;ctx3.shadowBlur=5;
+    ctx3.beginPath();ctx3.ellipse(-4*d,-67,3,4,0,0,Math.PI*2);ctx3.fill();ctx3.beginPath();ctx3.ellipse(4*d,-67,3,4,0,0,Math.PI*2);ctx3.fill();ctx3.shadowBlur=0;
+    // HP bar
+    ctx3.fillStyle='rgba(0,0,0,.5)';ctx3.fillRect(-13,-86,26,4);
+    ctx3.fillStyle=`hsl(${z.hp/z.maxHp*120},90%,50%)`;ctx3.fillRect(-13,-86,26*z.hp/z.maxHp,4);
+    ctx3.restore();
+  }
+}
+
+function g3DrawMara(){
+  if(!g3Mara.visible)return;
+  const mx=g3Mara.x-G3.camX,my=g3Mara.y;const d=g3Mara.facing||1;
+  const gy=G3_GF*H3;
+  ctx3.save();ctx3.translate(mx+14,gy);
+  // Shadow
+  ctx3.fillStyle='rgba(0,0,0,.25)';ctx3.beginPath();ctx3.ellipse(0,0,12,3,0,0,Math.PI*2);ctx3.fill();
+  // Legs
+  const legS=g3Mara.moving?Math.sin(G3.frame*.18)*10:0;
+  g3rr(-8*d-legS/2,-26,9,26,3,'#2a1808');g3rr(2*d+legS/2,-26,9,22,3,'#2a1808');
+  // Robe/body — elder colours
+  g3rr(-12,-56,24,30,7,'#3a2018');ctx3.fillStyle='#2a1610';ctx3.fillRect(-12,-28,24,5);
+  // Arms
+  g3rr(-14*d,-52,8,19,4,'#3a2018');ctx3.save();ctx3.translate(12*d,-48);ctx3.rotate(Math.sin(G3.frame*.025)*.18);g3rr(-3,-16,7,18,4,'#3a2018');ctx3.restore();
+  // Head
+  ctx3.fillStyle='#9a6840';ctx3.beginPath();ctx3.ellipse(0,-72,12,14,0,0,Math.PI*2);ctx3.fill();
+  // Elder hair/hood
+  ctx3.fillStyle='#e0d8c8';ctx3.beginPath();ctx3.ellipse(0,-80,10,6,0,Math.PI,Math.PI*2);ctx3.fill();ctx3.fillRect(-10,-82,20,4);
+  // Eyes
+  ctx3.fillStyle='rgba(0,0,0,.7)';ctx3.beginPath();ctx3.ellipse(-4*d,-74,3,3.5,0,0,Math.PI*2);ctx3.fill();ctx3.beginPath();ctx3.ellipse(4*d,-74,3,3.5,0,0,Math.PI*2);ctx3.fill();
+  // Name tag
+  ctx3.font='bold 8px "Share Tech Mono"';ctx3.fillStyle='rgba(180,220,130,.65)';ctx3.textAlign='center';ctx3.fillText('ELDER MARA',0,-98);
+  ctx3.restore();
+}
+
+function g3DrawPlayer(){
+  const sx=P3.x-G3.camX+P3.w/2,sy=P3.y;const d=P3.facing;
+  const jCol='#2e2c1e',tCol='#1e2010',bCol='#221a0c',skin='#be9068';
+  const ls=P3.walking&&P3.onGround?Math.sin(P3.walkF*Math.PI/3)*12:0;
+  const punchA=G3.attackAnim>0?(12-G3.attackAnim)/12:0;
+  const breathOff=Math.sin(G3.frame*.04)*.7;
+  ctx3.save();ctx3.translate(sx,sy+P3.h+breathOff);
+  ctx3.fillStyle='rgba(0,0,0,.28)';ctx3.beginPath();ctx3.ellipse(0,0,16,4,0,0,Math.PI*2);ctx3.fill();
+  for(let s of[-1,1]){ctx3.save();ctx3.translate(s<0?(-8*d-ls/2):(8*d+ls/2),-2);ctx3.rotate(s*ls*0.018*d);ctx3.fillStyle=bCol;ctx3.beginPath();ctx3.moveTo(-6,-2);ctx3.lineTo(-6,-7);ctx3.lineTo(7,-7);ctx3.lineTo(9,-2);ctx3.lineTo(9,2);ctx3.lineTo(-8,2);ctx3.closePath();ctx3.fill();ctx3.restore();}
+  ctx3.save();ctx3.translate(-8*d-ls/2,-19);ctx3.rotate(ls*.015);g3rr(-5,-21,10,23,3,tCol);ctx3.restore();
+  ctx3.save();ctx3.translate(8*d+ls/2,-19);ctx3.rotate(-ls*.015);g3rr(-5,-21,10,23,3,tCol);ctx3.restore();
+  g3rr(-12,-54,24,30,7,jCol);ctx3.fillStyle='#1e1a0e';ctx3.beginPath();ctx3.moveTo(-4,-54);ctx3.lineTo(0,-46);ctx3.lineTo(4,-54);ctx3.closePath();ctx3.fill();
+  ctx3.fillStyle='#2e2010';ctx3.fillRect(-12,-26,24,5);
+  // Sword in hand when crafted
+  if(G3.swordCrafted){
+    ctx3.save();ctx3.translate(14*d,-48);ctx3.rotate(d*0.3+punchA*d*0.9);
+    // Blade
+    const sgrad=ctx3.createLinearGradient(0,-38,4,0);sgrad.addColorStop(0,'#e8e0c8');sgrad.addColorStop(1,'#9a8a60');
+    ctx3.fillStyle=sgrad;ctx3.beginPath();ctx3.moveTo(-2,0);ctx3.lineTo(2,0);ctx3.lineTo(1,-38);ctx3.lineTo(-1,-38);ctx3.closePath();ctx3.fill();
+    // Guard
+    ctx3.fillStyle='#8a6020';ctx3.fillRect(-7,-6,14,4);
+    // Handle
+    ctx3.fillStyle='#5a3010';ctx3.fillRect(-3,0,6,12);
+    // Glow
+    ctx3.shadowColor='#fbbf24';ctx3.shadowBlur=8;ctx3.strokeStyle='rgba(251,191,36,.4)';ctx3.lineWidth=1;ctx3.beginPath();ctx3.moveTo(0,0);ctx3.lineTo(0,-38);ctx3.stroke();ctx3.shadowBlur=0;
+    ctx3.restore();
+  }
+  ctx3.save();ctx3.translate(-15*d,-48);ctx3.rotate(-.22+Math.sin(P3.walkF*Math.PI/3)*.01-punchA*1.2*d);g3rr(-4,-17,8,19,4,jCol);ctx3.fillStyle='#3a2810';ctx3.fillRect(-4,-3,8,5);ctx3.fillStyle=skin;ctx3.beginPath();ctx3.arc(0,-17,4.5,0,Math.PI*2);ctx3.fill();ctx3.restore();
+  ctx3.save();ctx3.translate(15*d,-48);ctx3.rotate(.22+punchA*1.35*d);g3rr(-4,-17,8,19,4,jCol);ctx3.fillStyle='#3a2810';ctx3.fillRect(-4,-3,8,5);ctx3.fillStyle=skin;ctx3.beginPath();ctx3.arc(0,-17,4.5,0,Math.PI*2);ctx3.fill();ctx3.restore();
+  ctx3.fillStyle=skin;ctx3.fillRect(-4,-60,8,7);
+  ctx3.shadowColor='rgba(0,0,0,.2)';ctx3.shadowBlur=4;ctx3.fillStyle=skin;ctx3.beginPath();ctx3.ellipse(0,-72,13,15,0,0,Math.PI*2);ctx3.fill();ctx3.shadowBlur=0;
+  ctx3.fillStyle='#201808';ctx3.beginPath();ctx3.ellipse(0,-82,11,7,0,Math.PI,Math.PI*2);ctx3.fill();ctx3.fillRect(-11,-83,22,4);
+  ctx3.fillStyle='#fff';ctx3.beginPath();ctx3.ellipse(-4.5*d,-74,4,5,0,0,Math.PI*2);ctx3.fill();ctx3.beginPath();ctx3.ellipse(4.5*d,-74,4,5,0,0,Math.PI*2);ctx3.fill();
+  ctx3.fillStyle='#180800';ctx3.beginPath();ctx3.ellipse(-4.5*d,-74,2.2,3,0,0,Math.PI*2);ctx3.fill();ctx3.beginPath();ctx3.ellipse(4.5*d,-74,2.2,3,0,0,Math.PI*2);ctx3.fill();
+  ctx3.restore();
+  // Sword slash arc
+  if(G3.attackAnim>0&&G3.swordCrafted){
+    ctx3.save();ctx3.globalAlpha=G3.attackAnim/14*.6;ctx3.strokeStyle='#fbbf24';ctx3.lineWidth=3;ctx3.shadowColor='#fbbf24';ctx3.shadowBlur=12;
+    ctx3.beginPath();ctx3.arc(sx+P3.facing*22,sy+P3.h*.35,28,-Math.PI*.3,Math.PI*.3);ctx3.stroke();ctx3.shadowBlur=0;ctx3.restore();G3.attackAnim--;
+  }else if(G3.attackAnim>0){ctx3.save();ctx3.globalAlpha=G3.attackAnim/12*.5;ctx3.fillStyle='#fcd34d';ctx3.shadowColor='#fcd34d';ctx3.shadowBlur=12;ctx3.beginPath();ctx3.arc(sx+P3.facing*34,sy+P3.h*.38,13,0,Math.PI*2);ctx3.fill();ctx3.shadowBlur=0;ctx3.restore();G3.attackAnim--;}
+}
+
+function g3DrawFloatsParts(){
+  for(const f of g3Floats){ctx3.save();ctx3.globalAlpha=f.life;ctx3.font='bold 12px Barlow';ctx3.fillStyle=f.col;ctx3.textAlign='center';ctx3.shadowColor=f.col;ctx3.shadowBlur=5;ctx3.fillText(f.txt,f.x,f.y);ctx3.restore();}
+  for(const p of g3Particles3){ctx3.save();ctx3.globalAlpha=p.life;ctx3.fillStyle=p.col;ctx3.beginPath();ctx3.arc(p.x,p.y,p.size,0,Math.PI*2);ctx3.fill();ctx3.restore();}
+}
+
+function g3DrawMinimap(){
+  const mx=W3-122,my=H3-36,mw=110,mh=8;
+  g3rr(mx-4,my-16,mw+8,mh+20,3,'rgba(4,6,14,.75)');
+  ctx3.fillStyle='rgba(255,255,255,.04)';ctx3.fillRect(mx,my,mw,mh);
+  for(const z of g3Zombies){if(z.dead)continue;const px=mx+z.x/G3_WORLD_W*mw;ctx3.fillStyle=z.female?'#ec4899':'#7c3aed';ctx3.fillRect(px-1,my-1,3,mh+2);}
+  const lx1=mx+G3_LAKE1_X/G3_WORLD_W*mw,lx2=mx+(G3_LAKE1_X+G3_LAKE1_W)/G3_WORLD_W*mw;
+  ctx3.fillStyle='rgba(56,189,248,.3)';ctx3.fillRect(lx1,my,lx2-lx1,mh);
+  const lx3=mx+G3_LAKE2_X/G3_WORLD_W*mw,lx4=mx+(G3_LAKE2_X+G3_LAKE2_W)/G3_WORLD_W*mw;
+  ctx3.fillStyle=G3.lake2HasWater?'rgba(56,189,248,.3)':'rgba(80,60,20,.3)';ctx3.fillRect(lx3,my,lx4-lx3,mh);
+  ctx3.fillStyle='#e8e4d8';ctx3.fillRect(mx+P3.x/G3_WORLD_W*mw-2,my-2,4,mh+4);
+  ctx3.font='7px Share Tech Mono';ctx3.fillStyle='rgba(56,189,248,.3)';ctx3.textAlign='left';ctx3.fillText('MAP',mx,my-5);
+}
+
+// ── HUD Update ──
+function g3UpdateHUD(){
+  document.getElementById('g3-v-hp').textContent=G3.hp;
+  document.getElementById('g3-hp-fill').style.width=G3.hp+'%';
+  document.getElementById('g3-v-fish').textContent=`${G3.fishCollected}/${G3.fishTarget}`;
+  document.getElementById('g3-b-fish').style.width=Math.min(100,G3.fishCollected/G3.fishTarget*100)+'%';
+  document.getElementById('g3-v-water').textContent=G3.waterPurified?'PURIFIED ✓':G3.pumpRunning?'PUMPING...':'NOT PUMPED';
+  document.getElementById('g3-b-water').style.width=G3.waterPurified?'100%':G3.pumpRunning?(G3.pumpTimer/(30*60)*100)+'%':'0%';
+  document.getElementById('g3-v-parts').textContent=`${G3.parts}/${G3.partsTarget}`;
+  document.getElementById('g3-b-parts').style.width=Math.min(100,G3.parts/G3.partsTarget*100)+'%';
+  document.getElementById('g3-v-kills').textContent=G3.kills;
+  document.getElementById('g3-b-kills').style.width=Math.min(100,G3.kills/10*100)+'%';
+  document.getElementById('g3-v-score').textContent=G3.score;
+  // Mission checks
+  function chk3(id,done){if(!done)return;const el=document.getElementById(id);if(el&&!el.classList.contains('done')){el.classList.add('done');el.querySelector('.m-bullet').textContent='●';}}
+  chk3('g3-mt1',G3.parts>=G3.partsTarget);
+  chk3('g3-mt2',G3.pumpBuilt);
+  chk3('g3-mt3',G3.waterPurified);
+  chk3('g3-mt4',G3.swordCrafted);
+  chk3('g3-mt5',G3.herdDefeated);
+  chk3('g3-mt6',G3.femaleHerdDefeated);
+  chk3('g3-mt7',G3.fishCollected>=G3.fishTarget);
+  chk3('g3-mt8',G3.fishDeployed);
+  chk3('g3-mt9',G3.win);
+  if(g3Trader3.dialogTimer>0)g3Trader3.dialogTimer--;
+}
+
+// ── End screen ──
+function g3ShowEnd(){
+  const ov=document.getElementById('g3-overlay');
+  ov.style.display='flex';ov.style.pointerEvents='all';
+  const sc=document.getElementById('g3-end');
+  if(G3.win){
+    sc.innerHTML=`
+      <div style="font-family:'Bebas Neue';font-size:10px;letter-spacing:.5em;color:#38bdf8;margin-bottom:6px;">ZONE 3 · THE FRACTURED NATION</div>
+      <div style="font-family:'Rubik Dirt';font-size:clamp(28px,6vw,52px);color:#38bdf8;line-height:.9;margin-bottom:4px;">ZONE CLEARED</div>
+      <div style="font-family:'Share Tech Mono';font-size:9px;letter-spacing:.3em;color:rgba(56,189,248,.35);margin-bottom:12px;">NATION REBUILT</div>
+      <p style="font-size:12px;line-height:1.7;color:rgba(212,200,168,.5);margin-bottom:16px;">Clean water flows. Fish return to the lake. The sword forged in the armoury held back the herd — and Elder Mara's words outlast the blade.</p>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:16px;text-align:left;">
+        <div style="background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.2);border-radius:3px;padding:9px 11px;"><div style="font-family:'Share Tech Mono';font-size:7px;letter-spacing:.2em;color:#38bdf8;margin-bottom:2px;">SDG 06</div><div style="font-family:'Bebas Neue';font-size:14px;color:#7dd3fc;">CLEAN WATER</div><div style="font-size:10px;color:rgba(200,185,150,.4);margin-top:3px;">Water pump built. Tank filled. Lake restored.</div></div>
+        <div style="background:rgba(236,72,153,.07);border:1px solid rgba(236,72,153,.2);border-radius:3px;padding:9px 11px;"><div style="font-family:'Share Tech Mono';font-size:7px;letter-spacing:.2em;color:#ec4899;margin-bottom:2px;">SDG 05</div><div style="font-family:'Bebas Neue';font-size:14px;color:#f9a8d4;">GENDER EQUALITY</div><div style="font-size:10px;color:rgba(200,185,150,.4);margin-top:3px;">"Zombies are zombies." — Elder Mara.</div></div>
+        <div style="background:rgba(140,0,80,.07);border:1px solid rgba(180,0,110,.2);border-radius:3px;padding:9px 11px;"><div style="font-family:'Share Tech Mono';font-size:7px;letter-spacing:.2em;color:#f9a8d4;margin-bottom:2px;">SDG 10</div><div style="font-family:'Bebas Neue';font-size:14px;color:#fbcfe8;">REDUCED INEQUALITY</div><div style="font-size:10px;color:rgba(200,185,150,.4);margin-top:3px;">Herd defeated. Every life equally defended.</div></div>
+        <div style="background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.15);border-radius:3px;padding:9px 11px;"><div style="font-family:'Share Tech Mono';font-size:7px;letter-spacing:.2em;color:#7dd3fc;margin-bottom:2px;">SDG 14</div><div style="font-family:'Bebas Neue';font-size:14px;color:#a5f3fc;">LIFE BELOW WATER</div><div style="font-size:10px;color:rgba(200,185,150,.4);margin-top:3px;">${G3.fishCollected} fish deployed. Ecosystem lives.</div></div>
+        <div style="background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.18);border-radius:3px;padding:9px 11px;"><div style="font-family:'Share Tech Mono';font-size:7px;letter-spacing:.2em;color:#fbbf24;margin-bottom:2px;">SDG 04</div><div style="font-family:'Bebas Neue';font-size:14px;color:#fde68a;">QUALITY EDUCATION</div><div style="font-size:10px;color:rgba(200,185,150,.4);margin-top:3px;">Armoury knowledge → sword crafted → survival.</div></div>
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:3px;padding:9px 11px;"><div style="font-family:'Share Tech Mono';font-size:8px;color:rgba(200,185,150,.35);margin-bottom:2px;">FINAL SCORE</div><div style="font-family:'Rubik Dirt';font-size:26px;color:#38bdf8;">${G3.score}</div><div style="font-family:'Share Tech Mono';font-size:8px;color:rgba(200,185,150,.28);">ZONE 3/5 COMPLETE</div></div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <button class="g-btn" style="background:linear-gradient(135deg,#0c2a3a,#38bdf8);font-size:15px;padding:12px 28px;" onclick="goToLevelSelect()">LEVEL SELECT</button>
+        <button class="g-btn" style="font-size:15px;padding:12px 28px;" onclick="enterZone3()">REPLAY ZONE 3</button>
+      </div>`;
+  }else{
+    sc.innerHTML=`
+      <div style="font-family:'Bebas Neue';font-size:10px;letter-spacing:.5em;color:#ef4444;margin-bottom:8px;">ZONE 3 · THE FRACTURED NATION</div>
+      <div style="font-family:'Rubik Dirt';font-size:clamp(32px,7vw,56px);color:#ef4444;line-height:.9;margin-bottom:6px;">ZONE LOST</div>
+      <div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.18);border-radius:3px;padding:12px 16px;margin-bottom:12px;text-align:left;"><div style="font-family:'Share Tech Mono';font-size:9px;color:#f87171;letter-spacing:.2em;margin-bottom:5px;">AFTER-ACTION</div><div style="font-size:12px;color:rgba(212,200,168,.6);">The herd overwhelmed the pump site. Clean water was never reached.</div></div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <button class="g-btn" style="background:linear-gradient(135deg,#7f1d1d,#ef4444);font-size:15px;padding:12px 28px;" onclick="enterZone3()">RETRY ZONE 3</button>
+        <button class="g-btn alt" style="font-size:15px;padding:12px 28px;" onclick="goToLevelSelect()">ZONE SELECT</button>
+      </div>`;
+  }
+}
+
+// ── Pause ──
+function g3TogglePause(){
+  if(!G3.running&&!G3_paused)return;if(G3.win||G3.lose)return;
+  G3_paused=!G3_paused;
+  const ov=document.getElementById('g3-pause-ov');
+  if(G3_paused){ov.classList.add('vis');Object.assign(g3inp,{left:false,right:false,jump:false,attack:false,attackPressed:false});}
+  else{ov.classList.remove('vis');G3.running=true;}
+}
+window.g3TogglePause=g3TogglePause;
+
+// ── Input ──
+window.addEventListener('keydown',e=>{
+  if(document.getElementById('g3-screen').style.display==='none')return;
+  const k=e.key.toLowerCase();
+  if(k==='p'){g3TogglePause();e.preventDefault();return;}
+  if(k==='enter'&&g3SdgPaused){g3DismissSDG();e.preventDefault();return;}
+  if(k==='a'||k==='arrowleft')g3inp.left=true;
+  if(k==='d'||k==='arrowright')g3inp.right=true;
+  if((k==='w'||k==='arrowup'||k===' ')&&!g3inp.jump)g3inp.jump=true;
+  if((k==='f'||k==='s')&&!g3inp.attackPressed){g3inp.attackPressed=true;g3inp.attack=true;}
+  if(k==='e'&&!g3inp.storePressed){g3inp.storePressed=true;g3inp.store=true;g3inp.storeUsed=false;}
+  if(k==='g'&&!g3inp.craftP){g3inp.craftP=true;g3inp.craft=true;}
+  if(k==='v'&&!g3inp.deployP){g3inp.deployP=true;g3inp.deploy=true;}
+  e.preventDefault();
+},{passive:false});
+window.addEventListener('keyup',e=>{
+  if(document.getElementById('g3-screen').style.display==='none')return;
+  const k=e.key.toLowerCase();
+  if(k==='a'||k==='arrowleft')g3inp.left=false;
+  if(k==='d'||k==='arrowright')g3inp.right=false;
+  if(k==='w'||k==='arrowup'||k===' ')g3inp.jump=false;
+  if(k==='f'||k==='s'){g3inp.attack=false;g3inp.attackPressed=false;}
+  if(k==='e'){g3inp.store=false;g3inp.storePressed=false;g3inp.storeUsed=false;}
+  if(k==='g'){g3inp.craft=false;g3inp.craftP=false;}
+  if(k==='v'){g3inp.deploy=false;g3inp.deployP=false;}
+});
+
+// ── Enter Zone 3 ──
+let g3LoopId=0;
+function enterZone3(){
+  // Full reset
+  Object.assign(G3,{running:false,frame:0,camX:0,hp:100,score:0,kills:0,parts:0,swordCrafted:false,swordCooldown:0,attackCooldown:0,attackAnim:0,armProgress:0,armBuilt:false,armInteractCooldown:0,pumpBuilt:false,pumpProgress:0,pumpInteractCooldown:0,pumpRunning:false,pumpTimer:0,pumpDone:false,waterPurified:false,fishCollected:0,fishInInventory:false,lake2HasWater:false,fishDeployed:false,herdDefeated:false,femaleHerdDefeated:false,maraPhase:0,maraActive:false,maraDialogStep:0,screenShake:0,win:false,lose:false,extractionUnlocked:false,sdgQueue:[],_sdgShown:{},waveTimer:0,pumpWaveSpawned:false,femaleWaveSpawned:false});
+  G3_paused=false;g3SdgPaused=false;
+  Object.assign(g3inp,{left:false,right:false,jump:false,attack:false,attackPressed:false,store:false,storePressed:false,storeUsed:false,craft:false,craftP:false,deploy:false,deployP:false});
+  // Reset world state
+  g3Zombies.length=0;g3Floats.length=0;g3Particles3.length=0;
+  g3FishSpots.forEach(f=>{f.collected=false;});
+  g3MechDrops.forEach(m=>{m.collected=false;});
+  g3LakeDebris.forEach(d=>{d.dead=false;});
+  g3Pump.built=false;g3Pump.fuseInserted=false;
+  g3WaterTank.filled=false;
+  g3Arm3.built=false;
+  g3Mara.visible=false;g3Mara.moving=false;g3Mara.x=80;
+  G3.armProgress=0;G3.armBuilt=false;G3.pumpProgress=0;G3.pumpBuilt=false;
+  // Reset UI panels
+  document.getElementById('g3-sword-panel').style.display='none';
+  document.getElementById('g3-pump-panel').style.display='none';
+  document.getElementById('g3-sdg').classList.remove('vis');
+  document.getElementById('g3-dialogue').style.display='none';
+  document.getElementById('g3-overlay').style.display='none';
+  document.getElementById('g3-pause-ov').classList.remove('vis');
+  document.getElementById('g3-pump-fill').style.width='0%';
+  document.getElementById('g3-v-pump').textContent='0%';
+  ['g3-mt1','g3-mt2','g3-mt3','g3-mt4','g3-mt5','g3-mt6','g3-mt7','g3-mt8','g3-mt9'].forEach(id=>{
+    const el=document.getElementById(id);if(el){el.classList.remove('done','active-task');el.querySelector('.m-bullet').textContent='○';}
+  });
+  // Show zone 3 screen
+  document.getElementById('homepage').style.display='none';
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('g2-screen').style.display='none';
+  document.getElementById('g3-screen').style.display='block';
+  resizeGC3();
+  const gy=G3_GF*H3;
+  P3.x=180;P3.y=gy-P3.h-1;P3.vx=0;P3.vy=0;P3.onGround=true;P3.facing=1;P3.walkF=0;P3.walkT=0;P3.walking=false;
+  G3.running=true;
+
+  g3LoopId++;const myId=g3LoopId;
+  function g3Loop(){
+    if(myId!==g3LoopId)return;
+    requestAnimationFrame(g3Loop);
+    if(G3_paused)return;
+    if(!G3.running)return;
+    G3.frame++;
+    if(!g3SdgPaused){
+      g3Physics();g3UpdateZombies();g3UpdatePump();g3UpdateMara();g3UpdateRain();g3UpdateLightning();g3UpdatePickups();
+      if(G3.attackCooldown>0)G3.attackCooldown--;
+      if(G3.swordCooldown>0)G3.swordCooldown--;
+      if(G3.armInteractCooldown>0)G3.armInteractCooldown--;
+      if(G3.pumpInteractCooldown>0)G3.pumpInteractCooldown--;
+      if(g3inp.attack)g3TryAction();
+      if(g3inp.store&&!g3inp.storeUsed){g3inp.storeUsed=true;g3TryStore();}
+      if(g3inp.craft){g3TryCraft();g3inp.craft=false;}
+      if(g3inp.deploy){g3TryDeploy();g3inp.deploy=false;}
+      g3CheckWin();
+    }
+    for(let i=g3Floats.length-1;i>=0;i--){g3Floats[i].y+=g3Floats[i].vy;g3Floats[i].life-=.025;if(g3Floats[i].life<=0)g3Floats.splice(i,1);}
+    for(let i=g3Particles3.length-1;i>=0;i--){const p=g3Particles3[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.18;p.life-=.028;if(p.life<=0)g3Particles3.splice(i,1);}
+
+    ctx3.save();
+    if(G3.screenShake>0){ctx3.translate((Math.random()-.5)*G3.screenShake,(Math.random()-.5)*G3.screenShake);G3.screenShake=Math.max(0,G3.screenShake-1);}
+    g3DrawBG();g3DrawMara();g3DrawZombies();g3DrawPlayer();g3DrawFloatsParts();g3DrawMinimap();
+    g3DrawRain();g3DrawLightning();
+    // Extraction zone
+    const exX=G3_WORLD_W-300-G3.camX;
+    if(exX>-100&&exX<W3+100){
+      const gnd=G3_GF*H3;const alpha=0.38+Math.sin(G3.frame*.06)*.26;
+      ctx3.save();ctx3.globalAlpha=G3.extractionUnlocked?Math.min(1,alpha+.3):alpha*.35;
+      ctx3.fillStyle=G3.extractionUnlocked?'#4ade80':'#38bdf8';
+      ctx3.fillRect(exX-2,gnd-120,6,120);ctx3.fillRect(exX+102,gnd-120,6,120);
+      ctx3.fillStyle=G3.extractionUnlocked?'rgba(74,222,128,.28)':'rgba(56,189,248,.12)';ctx3.fillRect(exX,gnd-120,104,120);
+      ctx3.font='bold 11px "Share Tech Mono"';ctx3.fillStyle=G3.extractionUnlocked?'#4ade80':'rgba(56,189,248,.55)';ctx3.textAlign='center';
+      ctx3.fillText(G3.extractionUnlocked?'▶ EXTRACTION ◀':'[ EXTRACTION ]',exX+52,gnd-130);
+      if(G3.extractionUnlocked){ctx3.font='bold 10px "Share Tech Mono"';ctx3.fillStyle='#86efac';ctx3.fillText('ALL CLEAR — GO!',exX+52,gnd-145);}
+      ctx3.restore();
+    }
+    // Rain overlay darkening
+    ctx3.fillStyle='rgba(4,6,14,.18)';ctx3.fillRect(0,0,W3,H3);
+    ctx3.restore();
+    g3UpdateHUD();
+  }
+  g3Loop();
+
+  // Intro toasts
+  setTimeout(()=>g3Toast('🌧 ZONE 3 — THE FRACTURED NATION. A storm rages. The water is contaminated.','#38bdf8'),600);
+  setTimeout(()=>g3Toast('⚙ Trade mech parts [E] from the mechanic — you need 4 to build the water pump','#94a3b8'),2400);
+  setTimeout(()=>g3Toast('🏗 Break open the Armoury crate [F] to build it — then [G] to forge a sword','#f97316'),5000);
+  setTimeout(()=>g3Toast('💧 Build the water pump at the lake edge [F] — SDG 6: Clean Water','#38bdf8'),8000);
+  setTimeout(()=>g3Toast('🐟 Catch fish from the lake [F near fish] — deploy them in the dry lake [V]','#7dd3fc'),11000);
+  setTimeout(()=>g3Toast('☠ When the pump starts — defend it! Zombies will attack from both sides','#ef4444'),14000);
+}
+window.enterZone3=enterZone3;
 </script>
 </body>
 </html>
