@@ -5094,13 +5094,230 @@
         // Mara NPC
         const g3Mara = { x: 180, y: 0, facing: 1, visible: false, moving: false, targetX: 0 };
 
+        // Lighthouse with scared civilians
+        const g3Lighthouse = { x: 2450 };
+        const g3LighthouseCivs = [
+            { x: 2430, scared: true, bob: 0 },
+            { x: 2455, scared: true, bob: 0.7 },
+            { x: 2470, scared: true, bob: 1.4 },
+        ];
+        // Lighthouse guard zombies
+        const g3LighthouseZombies = [
+            { x: 2350, vx: 1.2, hp: 30, maxHp: 30, dead: false, stun: 0, walkF: 0, female: false, isLighthouse: true },
+            { x: 2560, vx: -1.3, hp: 30, maxHp: 30, dead: false, stun: 0, walkF: 0, female: false, isLighthouse: true },
+            { x: 2300, vx: 1.0, hp: 28, maxHp: 28, dead: false, stun: 0, walkF: 0, female: false, isLighthouse: true },
+        ];
+
+        // Civilians near trader shack
+        const g3TraderCivs = [
+            { x: G3_TRADER_X - 40, type: 'sit', bob: 0 },
+            { x: G3_TRADER_X + 55, type: 'stand', bob: 0.5 },
+        ];
+        // Civilians near shelters
+        const g3ShelterCivs = [
+            { x: 150, type: 'sit', bob: 1.2 },
+            { x: 310, type: 'stand', bob: 0.3 },
+            { x: 430, type: 'sit', bob: 0.8 },
+        ];
+
+        // Animal rescue fence (before lake1)
+        const G3_FENCE_X = 3050, G3_FENCE_W = 120;
+        const g3FenceAnimals = [
+            { id: 0, x: G3_FENCE_X + 20, type: 'dog', freed: false, followTarget: null, followX: 0 },
+            { id: 1, x: G3_FENCE_X + 60, type: 'cat', freed: false, followTarget: null, followX: 0 },
+            { id: 2, x: G3_FENCE_X + 100, type: 'rabbit', freed: false, followTarget: null, followX: 0 },
+        ];
+        const g3FenceZombies = [
+            { x: G3_FENCE_X - 50, vx: 0.8, hp: 25, maxHp: 25, dead: false, stun: 0, walkF: 0, female: false, isFence: true },
+            { x: G3_FENCE_X + G3_FENCE_W + 50, vx: -0.9, hp: 25, maxHp: 25, dead: false, stun: 0, walkF: 0, female: false, isFence: true },
+            { x: G3_FENCE_X - 80, vx: 1.1, hp: 22, maxHp: 22, dead: false, stun: 0, walkF: 0, female: false, isFence: true },
+            { x: G3_FENCE_X + G3_FENCE_W + 90, vx: -1.0, hp: 22, maxHp: 22, dead: false, stun: 0, walkF: 0, female: false, isFence: true },
+        ];
+
+        // Decorative bushes
+        const g3Bushes = [
+            { x: 340, size: 1.1 }, { x: 560, size: 0.8 }, { x: 780, size: 1.3 }, { x: 1050, size: 0.9 },
+            { x: 1420, size: 1.2 }, { x: 1680, size: 0.7 }, { x: 1900, size: 1.0 }, { x: 2150, size: 1.4 },
+            { x: 2700, size: 0.9 }, { x: 3900, size: 1.1 }, { x: 4300, size: 0.8 }, { x: 5100, size: 1.0 },
+        ];
+
+        // ── AUDIO ENGINE (Web Audio API — procedural sound effects) ──
+        let g3AudioCtx = null;
+        function g3InitAudio() { if (!g3AudioCtx) { g3AudioCtx = new (window.AudioContext || window.webkitAudioContext)(); } if (g3AudioCtx.state === 'suspended') g3AudioCtx.resume(); }
+        // Master volume
+        let g3MasterVol = null;
+        function g3GetMaster() {
+            g3InitAudio();
+            if (!g3MasterVol) { g3MasterVol = g3AudioCtx.createGain(); g3MasterVol.gain.value = 0.35; g3MasterVol.connect(g3AudioCtx.destination); }
+            return g3MasterVol;
+        }
+        // Helper: play tone
+        function g3Tone(freq, dur, type = 'square', vol = 0.3, detune = 0) {
+            g3InitAudio(); const t = g3AudioCtx.currentTime;
+            const o = g3AudioCtx.createOscillator(); const g = g3AudioCtx.createGain();
+            o.type = type; o.frequency.setValueAtTime(freq, t); if (detune) o.detune.setValueAtTime(detune, t);
+            g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+            o.connect(g); g.connect(g3GetMaster()); o.start(t); o.stop(t + dur);
+        }
+        // Helper: noise burst (for hits, impacts)
+        function g3Noise(dur, vol = 0.2) {
+            g3InitAudio(); const t = g3AudioCtx.currentTime;
+            const bufSize = g3AudioCtx.sampleRate * dur;
+            const buf = g3AudioCtx.createBuffer(1, bufSize, g3AudioCtx.sampleRate);
+            const data = buf.getChannelData(0);
+            for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufSize);
+            const src = g3AudioCtx.createBufferSource(); const g = g3AudioCtx.createGain();
+            src.buffer = buf; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+            src.connect(g); g.connect(g3GetMaster()); src.start(t);
+        }
+
+        // ── SOUND EFFECTS ──
+        const g3SFX = {
+            swordSlash() {
+                g3Tone(800, 0.08, 'sawtooth', 0.25);
+                setTimeout(() => g3Tone(1200, 0.06, 'sawtooth', 0.15), 30);
+                setTimeout(() => g3Noise(0.08, 0.12), 20);
+            },
+            meleePunch() {
+                g3Noise(0.1, 0.25);
+                g3Tone(120, 0.12, 'square', 0.2);
+            },
+            zombieHit() {
+                g3Noise(0.06, 0.18);
+                g3Tone(200, 0.08, 'sawtooth', 0.12);
+            },
+            zombieDeath() {
+                g3Tone(300, 0.15, 'sawtooth', 0.2);
+                setTimeout(() => g3Tone(150, 0.2, 'sawtooth', 0.15), 60);
+                setTimeout(() => g3Noise(0.15, 0.15), 40);
+            },
+            jump() {
+                g3InitAudio(); const t = g3AudioCtx.currentTime;
+                const o = g3AudioCtx.createOscillator(); const g = g3AudioCtx.createGain();
+                o.type = 'sine'; o.frequency.setValueAtTime(260, t); o.frequency.exponentialRampToValueAtTime(520, t + 0.1);
+                g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+                o.connect(g); g.connect(g3GetMaster()); o.start(t); o.stop(t + 0.15);
+            },
+            footstep() {
+                g3Noise(0.04, 0.06);
+                g3Tone(80 + Math.random() * 40, 0.04, 'triangle', 0.04);
+            },
+            fishCatch() {
+                g3Tone(523, 0.08, 'sine', 0.15);
+                setTimeout(() => g3Tone(659, 0.08, 'sine', 0.15), 80);
+                setTimeout(() => g3Tone(784, 0.12, 'sine', 0.12), 160);
+                setTimeout(() => g3Noise(0.05, 0.08), 10); // splash
+            },
+            debrisSmash() {
+                g3Noise(0.15, 0.3);
+                g3Tone(80, 0.15, 'square', 0.2);
+                setTimeout(() => g3Tone(60, 0.1, 'square', 0.12), 50);
+            },
+            debrisBreak() {
+                g3Noise(0.25, 0.35);
+                g3Tone(120, 0.08, 'sawtooth', 0.2);
+                setTimeout(() => g3Noise(0.12, 0.2), 80);
+                setTimeout(() => g3Tone(80, 0.15, 'square', 0.15), 120);
+            },
+            buildProgress() {
+                g3Tone(440, 0.06, 'triangle', 0.12);
+                setTimeout(() => g3Tone(554, 0.06, 'triangle', 0.1), 50);
+                g3Noise(0.04, 0.08);
+            },
+            buildComplete() {
+                g3Tone(523, 0.1, 'sine', 0.2);
+                setTimeout(() => g3Tone(659, 0.1, 'sine', 0.18), 100);
+                setTimeout(() => g3Tone(784, 0.1, 'sine', 0.18), 200);
+                setTimeout(() => g3Tone(1047, 0.2, 'sine', 0.22), 300);
+            },
+            pumpStart() {
+                g3Tone(100, 0.2, 'sawtooth', 0.15);
+                setTimeout(() => g3Tone(120, 0.2, 'sawtooth', 0.18), 150);
+                setTimeout(() => g3Tone(150, 0.3, 'square', 0.12), 300);
+                g3Noise(0.25, 0.12);
+            },
+            pumpTick() {
+                g3Tone(200 + Math.random() * 50, 0.03, 'square', 0.04);
+            },
+            pumpComplete() {
+                g3Tone(440, 0.12, 'sine', 0.2);
+                setTimeout(() => g3Tone(660, 0.12, 'sine', 0.2), 120);
+                setTimeout(() => g3Tone(880, 0.15, 'sine', 0.22), 240);
+                setTimeout(() => g3Tone(1100, 0.25, 'sine', 0.18), 360);
+            },
+            craftSword() {
+                // Metallic clangs
+                g3Tone(1200, 0.05, 'square', 0.15);
+                setTimeout(() => g3Tone(1800, 0.04, 'square', 0.12), 80);
+                setTimeout(() => g3Tone(900, 0.06, 'sawtooth', 0.1), 160);
+                setTimeout(() => { g3Tone(600, 0.12, 'sine', 0.2); g3Tone(750, 0.12, 'sine', 0.15); }, 250);
+                setTimeout(() => g3Tone(1050, 0.2, 'sine', 0.18), 370);
+            },
+            deployFish() {
+                // Splash + rising tones
+                g3Noise(0.12, 0.2);
+                g3Tone(330, 0.1, 'sine', 0.12);
+                setTimeout(() => g3Tone(440, 0.1, 'sine', 0.12), 100);
+                setTimeout(() => g3Tone(550, 0.1, 'sine', 0.12), 200);
+                setTimeout(() => g3Noise(0.08, 0.1), 150);
+            },
+            playerHurt() {
+                g3Tone(180, 0.12, 'sawtooth', 0.25);
+                setTimeout(() => g3Tone(100, 0.15, 'sawtooth', 0.2), 60);
+                g3Noise(0.06, 0.15);
+            },
+            trade() {
+                g3Tone(660, 0.06, 'triangle', 0.12);
+                setTimeout(() => g3Tone(880, 0.06, 'triangle', 0.1), 60);
+                g3Noise(0.03, 0.06);
+            },
+            sdgChime() {
+                g3Tone(523, 0.15, 'sine', 0.18);
+                setTimeout(() => g3Tone(659, 0.15, 'sine', 0.16), 150);
+                setTimeout(() => g3Tone(784, 0.15, 'sine', 0.16), 300);
+                setTimeout(() => g3Tone(1047, 0.3, 'sine', 0.2), 450);
+            },
+            toast() {
+                g3Tone(880, 0.04, 'sine', 0.06);
+            },
+            thunder() {
+                g3InitAudio(); const t = g3AudioCtx.currentTime;
+                const bufSize = g3AudioCtx.sampleRate * 1.2;
+                const buf = g3AudioCtx.createBuffer(1, bufSize, g3AudioCtx.sampleRate);
+                const data = buf.getChannelData(0);
+                for (let i = 0; i < bufSize; i++) {
+                    const env = Math.exp(-i / bufSize * 3);
+                    data[i] = (Math.random() * 2 - 1) * env * (i < bufSize * 0.05 ? i / (bufSize * 0.05) : 1);
+                }
+                const src = g3AudioCtx.createBufferSource(); const g = g3AudioCtx.createGain();
+                const filt = g3AudioCtx.createBiquadFilter(); filt.type = 'lowpass'; filt.frequency.value = 300;
+                src.buffer = buf; g.gain.setValueAtTime(0.25, t);
+                src.connect(filt); filt.connect(g); g.connect(g3GetMaster()); src.start(t);
+            },
+            splash() {
+                g3Noise(0.15, 0.15);
+                g3Tone(180, 0.08, 'sine', 0.08);
+                setTimeout(() => g3Noise(0.08, 0.08), 60);
+            },
+            death() {
+                g3Tone(300, 0.2, 'sawtooth', 0.25);
+                setTimeout(() => g3Tone(200, 0.3, 'sawtooth', 0.2), 150);
+                setTimeout(() => g3Tone(100, 0.5, 'sawtooth', 0.18), 350);
+            },
+            win() {
+                [523, 659, 784, 1047, 1319].forEach((f, i) => {
+                    setTimeout(() => g3Tone(f, 0.2, 'sine', 0.18), i * 150);
+                });
+            }
+        };
+
         // ── Helpers ──
         function g3Float(x, y, txt, col) { g3Floats.push({ x, y, txt, col, life: 1, vy: -1.8 }); }
         function g3Parts(x, y, col, n = 8, spd = 3) { for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2; g3Particles3.push({ x, y, vx: Math.cos(a) * spd * (0.5 + Math.random()), vy: Math.sin(a) * spd * (0.5 + Math.random()) - 2, life: 1, col, size: 3 + Math.random() * 4 }); } }
         function g3Toast(txt, col = '#38bdf8') {
             const c = document.getElementById('g3-toasts');
             const el = document.createElement('div'); el.className = 'g-toast'; el.style.borderLeftColor = col; el.textContent = txt;
-            c.appendChild(el); setTimeout(() => el.remove(), 3000);
+            c.appendChild(el); setTimeout(() => el.remove(), 3000); g3SFX.toast();
         }
         function g3rr(x, y, w, h, r, fill) {
             ctx3.fillStyle = fill; ctx3.beginPath();
@@ -5128,7 +5345,7 @@
             document.getElementById('g3-sr-desc').textContent = d.desc;
             document.getElementById('g3-sr-stat').textContent = d.stat;
             document.getElementById('g3-sdg').classList.add('vis');
-            g3SdgPaused = true;
+            g3SdgPaused = true; g3SFX.sdgChime();
         }
         function g3DismissSDG() {
             document.getElementById('g3-sdg').classList.remove('vis');
@@ -5187,7 +5404,7 @@
             if (g3inp.left) { P3.vx = -G3_MSPD; P3.facing = -1; P3.walking = true; }
             else if (g3inp.right) { P3.vx = G3_MSPD; P3.facing = 1; P3.walking = true; }
             else P3.vx *= 0.65;
-            if (g3inp.jump && P3.onGround) { P3.vy = G3_JSPD; P3.onGround = false; g3inp.jump = false; }
+            if (g3inp.jump && P3.onGround) { P3.vy = G3_JSPD; P3.onGround = false; g3inp.jump = false; g3SFX.jump(); }
             P3.vy = Math.min(P3.vy + G3_GRAV, 20); P3.x += P3.vx; P3.y += P3.vy;
             P3.onGround = false;
             // Lake-aware ground — player can jump INTO lakes
@@ -5206,7 +5423,7 @@
                 if (P3.x + P3.w > pl.x && P3.x < pl.x + pl.w && P3.y + P3.h > py && P3.y + P3.h < py + 16 && P3.vy >= 0) { P3.y = py - P3.h; P3.vy = 0; P3.onGround = true; }
             }
             P3.x = Math.max(20, Math.min(G3_WORLD_W - P3.w, P3.x));
-            if (P3.walking && P3.onGround) { P3.walkT++; if (P3.walkT > 5) { P3.walkF = (P3.walkF + 1) % 6; P3.walkT = 0; } } else P3.walkT = 0;
+            if (P3.walking && P3.onGround) { P3.walkT++; if (P3.walkT > 5) { P3.walkF = (P3.walkF + 1) % 6; P3.walkT = 0; if (P3.walkF % 3 === 0) g3SFX.footstep(); } } else P3.walkT = 0;
             const tx = P3.x - W3 * 0.35; G3.camX += (tx - G3.camX) * 0.09;
             G3.camX = Math.max(0, Math.min(G3_WORLD_W - W3, G3.camX));
         }
@@ -5222,9 +5439,11 @@
             if (!G3.armBuilt && Math.abs(g3Arm3.x - pcx) < 80) {
                 if (G3.armInteractCooldown > 0) return;
                 G3.armInteractCooldown = 22; G3.armProgress++;
+                g3SFX.buildProgress();
                 g3Float(g3Arm3.x - G3.camX, gy - 70, `🏗 ${G3.armProgress}/${G3.armNeeded}`, '#fdba74');
                 if (G3.armProgress >= G3.armNeeded) {
                     G3.armBuilt = true; G3.score += 400; G3.screenShake = 14;
+                    g3SFX.buildComplete();
                     g3Parts(g3Arm3.x - G3.camX, gy - 30, '#f97316', 22, 6);
                     g3Toast('🏗 ARMOURY BUILT! Press G to craft sword — SDG 4', '#f97316');
                     G3.sdgQueue.push(4); if (!g3SdgPaused) setTimeout(() => g3ShowSDG(G3.sdgQueue.shift()), 400);
@@ -5237,9 +5456,11 @@
                 if (G3.parts < G3.partsTarget) { g3Float(g3Pump.x - G3.camX, gy - 70, `Need ${G3.partsTarget} parts first!`, '#ef4444'); return; }
                 if (G3.pumpInteractCooldown > 0) return;
                 G3.pumpInteractCooldown = 22; G3.pumpProgress++;
+                g3SFX.buildProgress();
                 g3Float(g3Pump.x - G3.camX, gy - 70, `🔧 ${G3.pumpProgress}/8`, '#38bdf8');
                 if (G3.pumpProgress >= 8) {
                     G3.pumpBuilt = true; G3.score += 500; G3.screenShake = 14;
+                    g3SFX.buildComplete();
                     g3Parts(g3Pump.x - G3.camX, gy - 40, '#38bdf8', 22, 5);
                     g3Toast('🔧 WATER PUMP BUILT! Press F again to insert fuse & start pumping — SDG 6', '#38bdf8');
                 }
@@ -5249,6 +5470,7 @@
             // PRIORITY 3: Insert fuse — start pump
             if (G3.pumpBuilt && !G3.pumpRunning && !G3.pumpDone && Math.abs(g3Pump.x - pcx) < 80) {
                 G3.pumpRunning = true; G3.pumpTimer = 0;
+                g3SFX.pumpStart();
                 document.getElementById('g3-pump-panel').style.display = 'block';
                 g3Toast('⚡ PUMP STARTED! Water purifying — 32 seconds. Defend the pump!', '#38bdf8');
                 G3.screenShake = 16;
@@ -5274,6 +5496,7 @@
                     if (fs.collected) continue;
                     if (Math.abs(pcx - fs.x) < 100) {
                         fs.collected = true; G3.fishCollected++; G3.score += 150;
+                        g3SFX.fishCatch();
                         g3Parts(fs.x - G3.camX, gy - 30, '#38bdf8', 12, 4);
                         g3Float(fs.x - G3.camX, gy - 60, `🐟 Fish! (${G3.fishCollected}/${G3.fishTarget})`, '#7dd3fc');
                         g3Toast(`🐟 Fish collected (${G3.fishCollected}/${G3.fishTarget}) — SDG 14`, '#7dd3fc');
@@ -5291,10 +5514,12 @@
                     g3Parts(db.x - G3.camX, gy - 30, '#fcd34d', 8, 4);
                     if (db.hp <= 0) {
                         db.dead = true; G3.score += 60;
+                        g3SFX.debrisBreak();
                         g3Parts(db.x - G3.camX, gy - 20, '#94a3b8', 14, 5);
                         g3Float(db.x - G3.camX, gy - 60, '💥 Salvage +1', '#fcd34d');
                         g3Toast('💥 Debris smashed! Salvage collected', '#fcd34d');
                     } else {
+                        g3SFX.debrisSmash();
                         g3Float(db.x - G3.camX, gy - 50, `💥 ${db.hp} HP left`, '#fcd34d');
                     }
                     G3.attackAnim = 10; G3.screenShake = 3;
@@ -5305,26 +5530,26 @@
             // PRIORITY 6: Combat — sword or melee (only if nothing else is nearby)
             if (G3.swordCrafted) {
                 if (G3.swordCooldown > 0) return;
-                G3.swordCooldown = 18; G3.attackAnim = 14; G3.screenShake = 5;
+                G3.swordCooldown = 18; G3.attackAnim = 14; G3.screenShake = 5; g3SFX.swordSlash();
                 for (const z of g3Zombies) {
                     if (z.dead) continue;
                     if (Math.abs((z.x + 16) - cx) < 75) {
-                        z.hp -= 18; z.stun = 30; z.vx = P3.facing * 6;
+                        z.hp -= 8; z.stun = 30; z.vx = P3.facing * 6;
                         g3Parts(z.x - G3.camX, z.y - 30, '#fbbf24', 10, 5);
-                        g3Float(z.x - G3.camX, z.y - 60, z.hp <= 0 ? '☠ SLASH!' : '-18 ⚔', '#fbbf24');
-                        if (z.hp <= 0) { z.dead = true; G3.kills++; G3.score += 220; g3Parts(z.x - G3.camX, z.y - 20, '#ef4444', 18, 6); g3Toast('⚔ Slashed down!', '#fbbf24'); }
+                        g3Float(z.x - G3.camX, z.y - 60, z.hp <= 0 ? '☠ SLASH!' : '-8 ⚔', '#fbbf24');
+                        if (z.hp <= 0) { z.dead = true; G3.kills++; G3.score += 220; g3SFX.zombieDeath(); g3Parts(z.x - G3.camX, z.y - 20, '#ef4444', 18, 6); g3Toast('⚔ Slashed down!', '#fbbf24'); } else { g3SFX.zombieHit(); }
                     }
                 }
             } else {
                 if (G3.attackCooldown > 0) return;
-                G3.attackCooldown = 22; G3.attackAnim = 12; G3.screenShake = 4;
+                G3.attackCooldown = 22; G3.attackAnim = 12; G3.screenShake = 4; g3SFX.meleePunch();
                 for (const z of g3Zombies) {
                     if (z.dead) continue;
                     if (Math.abs((z.x + 16) - cx) < 65) {
-                        z.hp -= 10; z.stun = 28; z.vx = P3.facing * 5;
+                        z.hp -= 5; z.stun = 28; z.vx = P3.facing * 5;
                         g3Parts(z.x - G3.camX, z.y - 30, '#a78bfa', 8, 5);
-                        g3Float(z.x - G3.camX, z.y - 60, z.hp <= 0 ? '☠ DOWN!' : '-10 🥊', '#a78bfa');
-                        if (z.hp <= 0) { z.dead = true; G3.kills++; G3.score += 180; g3Parts(z.x - G3.camX, z.y - 20, '#ef4444', 16, 6); g3Toast('💀 Zombie down!', '#ef4444'); }
+                        g3Float(z.x - G3.camX, z.y - 60, z.hp <= 0 ? '☠ DOWN!' : '-5 🥊', '#a78bfa');
+                        if (z.hp <= 0) { z.dead = true; G3.kills++; G3.score += 180; g3SFX.zombieDeath(); g3Parts(z.x - G3.camX, z.y - 20, '#ef4444', 16, 6); g3Toast('💀 Zombie down!', '#ef4444'); } else { g3SFX.zombieHit(); }
                     }
                 }
             }
@@ -5336,6 +5561,7 @@
             if (Math.abs(P3.x + P3.w / 2 - g3Trader3.x) < 95) {
                 if (G3.parts >= G3.partsTarget) { g3Float(g3Trader3.x - G3.camX, G3_GF * H3 - 80, 'All parts acquired!', '#4ade80'); return; }
                 G3.parts++; G3.score += 200;
+                g3SFX.trade();
                 g3Parts(g3Trader3.x - G3.camX, G3_GF * H3 - 40, '#94a3b8', 12, 4);
                 g3Float(g3Trader3.x - G3.camX, G3_GF * H3 - 85, `⚙ +1 Part (${G3.parts}/${G3.partsTarget})`, '#94a3b8');
                 g3Toast(`⚙ Mech part acquired (${G3.parts}/${G3.partsTarget}) — SDG 6`, '#94a3b8');
@@ -5352,6 +5578,7 @@
             if (Math.abs(P3.x - g3Arm3.x) > 85) { g3Float(P3.x - G3.camX, P3.y - 50, 'Go to the Armoury', '#fdba74'); return; }
             if (G3.swordCrafted) { g3Float(P3.x - G3.camX, P3.y - 50, 'Sword already crafted!', '#4ade80'); return; }
             G3.swordCrafted = true; G3.score += 350; G3.screenShake = 12;
+            g3SFX.craftSword();
             document.getElementById('g3-sword-panel').style.display = 'block';
             g3Parts(g3Arm3.x - G3.camX, G3_GF * H3 - 40, '#fbbf24', 24, 6);
             g3Toast('⚔ SWORD CRAFTED! [F] to slash — knowledge forged into skill — SDG 4', '#fbbf24');
@@ -5363,6 +5590,7 @@
             if (!inLake2) { g3Float(P3.x - G3.camX, P3.y - 50, 'Go to the dry lake first!', '#7dd3fc'); return; }
             if (G3.fishDeployed) { g3Float(P3.x - G3.camX, P3.y - 50, 'Fish deployed!', '#4ade80'); return; }
             G3.lake2HasWater = true; G3.fishDeployed = true; G3.score += 600; G3.screenShake = 16;
+            g3SFX.deployFish();
             g3Parts(P3.x - G3.camX, G3_GF * H3 - 50, '#38bdf8', 28, 6);
             g3Parts(P3.x - G3.camX, G3_GF * H3 - 50, '#7dd3fc', 20, 4);
             g3Float(P3.x - G3.camX, G3_GF * H3 - 90, '🐟 ECOSYSTEM RESTORED!', '#38bdf8');
@@ -5384,6 +5612,7 @@
                 z.walkF = (z.walkF + 0.15) % 6;
                 if (Math.abs(dx) < 34 && G3.frame % 60 === 0) {
                     G3.hp = Math.max(0, G3.hp - 10); G3.screenShake = 8;
+                    g3SFX.playerHurt();
                     g3Float(P3.x - G3.camX, P3.y - 40, '-10 HP 🧟', '#ef4444');
                     if (G3.hp <= 0) g3TriggerDeath();
                 }
@@ -5431,14 +5660,49 @@
             }
         }
 
+        // ── Animal Rescue Update ──
+        function g3UpdateAnimals() {
+            const allFDead = g3FenceZombies.every(z => z.dead);
+            if (allFDead) {
+                // Free animals & assign them to follow civilians
+                for (const animal of g3FenceAnimals) {
+                    if (!animal.freed) {
+                        animal.freed = true;
+                        g3SFX.buildComplete();
+                        g3Float(animal.x - G3.camX, G3_GF * H3 - 40, `🐾 ${animal.type.toUpperCase()} rescued!`, '#4ade80');
+                        // Assign to nearest civilian (shelter or trader civilians)
+                        const allCivs = [...g3ShelterCivs, ...g3TraderCivs, ...g3LighthouseCivs];
+                        let closest = allCivs[animal.id % allCivs.length];
+                        animal.followTarget = closest;
+                        animal.followX = animal.x;
+                    }
+                }
+                // One-time toast
+                if (!G3._animalsRescued) {
+                    G3._animalsRescued = true;
+                    g3Toast('🐾 ANIMALS RESCUED! They follow survivors now — SDG 15 (Life on Land) ✓', '#4ade80');
+                    G3.score += 400;
+                }
+            }
+            // Move freed animals toward their target civilians
+            for (const animal of g3FenceAnimals) {
+                if (!animal.freed || !animal.followTarget) continue;
+                const targetX = animal.followTarget.x;
+                const dx = targetX - animal.followX;
+                animal.followX += dx * 0.015; // gentle follow speed
+            }
+        }
+
         function g3UpdatePump() {
             if (!G3.pumpRunning || G3.pumpDone) return;
             G3.pumpTimer++;
+            if (G3.pumpTimer % 120 === 0) g3SFX.pumpTick(); // tick every 2 seconds
             const pct = Math.min(1, G3.pumpTimer / (32 * 60)); // 32 seconds at 60fps
             document.getElementById('g3-pump-fill').style.width = (pct * 100) + '%';
             document.getElementById('g3-v-pump').textContent = Math.floor(pct * 100) + '%';
             if (pct >= 1 && !G3.pumpDone) {
                 G3.pumpDone = true; G3.waterPurified = true; G3.score += 800; G3.screenShake = 20;
+                g3SFX.pumpComplete();
                 g3WaterTank.filled = true;
                 g3Parts(g3WaterTank.x - G3.camX, G3_GF * H3 - 60, '#38bdf8', 30, 6);
                 g3Toast('💧 WATER PURIFIED! Tank filled — SDG 6 ✓. Collect fish and deploy [V] into dry lake!', '#38bdf8');
@@ -5474,11 +5738,11 @@
                 G3.extractionUnlocked = true;
                 g3Toast('✅ ALL OBJECTIVES COMPLETE! Reach EXTRACTION →', '#4ade80'); G3.screenShake = 12;
             }
-            if (G3.extractionUnlocked && P3.x > G3_WORLD_W - 300) { G3.win = true; G3.running = false; g3ShowEnd(); }
+            if (G3.extractionUnlocked && P3.x > G3_WORLD_W - 300) { G3.win = true; G3.running = false; g3SFX.win(); g3ShowEnd(); }
         }
 
         function g3TriggerDeath() {
-            G3.lose = true; G3.running = false; g3ShowEnd();
+            G3.lose = true; G3.running = false; g3SFX.death(); g3ShowEnd();
         }
 
         // ── Lightning ──
@@ -5491,6 +5755,7 @@
                 if (g3Lightning.next <= 0) {
                     g3Lightning.active = true; g3Lightning.timer = 8 + Math.floor(Math.random() * 10);
                     g3Lightning.next = 180 + Math.floor(Math.random() * 400);
+                    g3SFX.thunder();
                     // Generate bolt path
                     g3Lightning.bolt = [];
                     let bx = 100 + Math.random() * (W3 - 200), by = 0;
@@ -5503,9 +5768,9 @@
         // ── Drawing ──
         function g3DrawBG() {
             const gy = G3_GF * H3;
-            // Stormy sky gradient
+            // Warm dusk sky gradient (lighter atmosphere)
             const sg = ctx3.createLinearGradient(0, 0, 0, gy);
-            sg.addColorStop(0, '#060810'); sg.addColorStop(.3, '#0a0d18'); sg.addColorStop(.7, '#0e1020'); sg.addColorStop(1, '#141828');
+            sg.addColorStop(0, '#1a1828'); sg.addColorStop(.2, '#2a2030'); sg.addColorStop(.5, '#3a2828'); sg.addColorStop(.75, '#4a3428'); sg.addColorStop(1, '#5a4030');
             ctx3.fillStyle = sg; ctx3.fillRect(0, 0, W3, gy);
 
             // Lightning flash background
@@ -5513,12 +5778,12 @@
                 ctx3.fillStyle = `rgba(180,200,255,${(g3Lightning.timer - 5) / 3 * .08})`; ctx3.fillRect(0, 0, W3, H3);
             }
 
-            // Storm clouds
-            ctx3.save(); ctx3.globalAlpha = .55;
+            // Storm clouds (lighter)
+            ctx3.save(); ctx3.globalAlpha = .4;
             for (let ci = 0; ci < 12; ci++) {
                 const cx = ((ci * 380 + 120) - G3.camX * .06) % W3; const cy = 22 + ((ci * 31) % 65); const cr = 60 + ((ci * 17) % 80);
                 const cg = ctx3.createRadialGradient(cx, cy, 0, cx, cy, cr);
-                cg.addColorStop(0, `rgba(${14 + ci % 3 * 4},${16 + ci % 3 * 3},${28 + ci % 3 * 6},.85)`); cg.addColorStop(1, 'rgba(0,0,0,0)');
+                cg.addColorStop(0, `rgba(${30 + ci % 3 * 8},${22 + ci % 3 * 6},${18 + ci % 3 * 8},.7)`); cg.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx3.fillStyle = cg; ctx3.beginPath(); ctx3.ellipse(cx, cy, cr, cr * .5, 0, 0, Math.PI * 2); ctx3.fill();
             }
             ctx3.restore();
@@ -5538,46 +5803,59 @@
                 ctx3.restore();
             }
 
-            // Ground — CONTAMINATED SOIL
+            // Ground — YELLOWISH-BROWN SOIL (warm, earthy texture)
             const soilG = ctx3.createLinearGradient(0, gy, 0, H3);
-            soilG.addColorStop(0, '#1a2208'); soilG.addColorStop(.15, '#12180a'); soilG.addColorStop(.5, '#0c1008'); soilG.addColorStop(1, '#080a06');
+            soilG.addColorStop(0, '#3a2e1a'); soilG.addColorStop(.15, '#2e2414'); soilG.addColorStop(.5, '#221a0e'); soilG.addColorStop(1, '#18120a');
             ctx3.fillStyle = soilG; ctx3.fillRect(0, gy, W3, H3 - gy + 2);
-            // Toxic surface crust
-            ctx3.fillStyle = '#1e2a0a'; ctx3.fillRect(0, gy, W3, 5);
-            ctx3.fillStyle = '#2a3a10'; ctx3.fillRect(0, gy, W3, 2);
-            // Contamination veins across soil
+            // Warm surface crust
+            ctx3.fillStyle = '#4a3a22'; ctx3.fillRect(0, gy, W3, 5);
+            ctx3.fillStyle = '#5a4a2a'; ctx3.fillRect(0, gy, W3, 2);
+            // Earth veins across soil (warm brown tones)
             ctx3.save();
             for (let vi = 0; vi < 18; vi++) {
                 const vx = ((vi * 280 + 40) - G3.camX * .2) % W3;
-                ctx3.strokeStyle = `rgba(80,180,20,${.08 + (vi % 3) * .04})`; ctx3.lineWidth = 1.5;
+                ctx3.strokeStyle = `rgba(140,100,40,${.1 + (vi % 3) * .04})`; ctx3.lineWidth = 1.5;
                 ctx3.beginPath(); ctx3.moveTo(vx, gy + 4);
                 ctx3.quadraticCurveTo(vx + 20 + vi * 3, gy + 14 + vi % 4 * 6, vx + 50 + vi * 7, gy + 8 + vi % 3 * 10);
                 ctx3.stroke();
             }
-            // Toxic chemical puddles (glowing green/yellow)
-            for (let pi = 0; pi < 16; pi++) {
-                const px = ((pi * 300 + 60 + G3.camX * .1) % W3);
-                const isToxic = pi % 3 !== 2;
-                const toxCol = isToxic ? [60, 180, 30] : [180, 160, 20];
-                const pg = ctx3.createRadialGradient(px, gy + 6, 0, px, gy + 6, 22 + pi * 3);
-                pg.addColorStop(0, `rgba(${toxCol[0]},${toxCol[1]},${toxCol[2]},${isToxic ? .22 : .14})`);
+            // Warm mud puddles (golden-brown)
+            for (let pi = 0; pi < 14; pi++) {
+                const px = ((pi * 320 + 70 + G3.camX * .1) % W3);
+                const mudCol = pi % 2 === 0 ? [160, 120, 50] : [120, 90, 40];
+                const pg = ctx3.createRadialGradient(px, gy + 6, 0, px, gy + 6, 18 + pi * 2);
+                pg.addColorStop(0, `rgba(${mudCol[0]},${mudCol[1]},${mudCol[2]},.18)`);
                 pg.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx3.fillStyle = pg; ctx3.beginPath(); ctx3.ellipse(px, gy + 7, 22 + pi * 2, 5, 0, 0, Math.PI * 2); ctx3.fill();
-                // Bubble effect on toxic pools
-                if (isToxic && G3.frame % 40 < 8) {
-                    const bx = px + Math.sin(G3.frame * .1 + pi) * 10;
-                    ctx3.fillStyle = `rgba(100,220,40,.${3 + pi % 3})`; ctx3.beginPath(); ctx3.arc(bx, gy + 4, 2, 0, Math.PI * 2); ctx3.fill();
-                }
+                ctx3.fillStyle = pg; ctx3.beginPath(); ctx3.ellipse(px, gy + 7, 18 + pi * 1.5, 4, 0, 0, Math.PI * 2); ctx3.fill();
             }
-            // Contamination cracks in earth
-            ctx3.strokeStyle = 'rgba(40,60,10,.5)'; ctx3.lineWidth = 1;
-            for (let ci = 0; ci < 22; ci++) {
-                const ccx = ((ci * 240 + 90) - G3.camX * .15) % W3;
+            // Natural earth cracks
+            ctx3.strokeStyle = 'rgba(80,60,30,.45)'; ctx3.lineWidth = 1;
+            for (let ci = 0; ci < 20; ci++) {
+                const ccx = ((ci * 260 + 90) - G3.camX * .15) % W3;
                 ctx3.beginPath(); ctx3.moveTo(ccx, gy + 3);
-                ctx3.lineTo(ccx + 8 + ci % 5 * 4, gy + 10 + ci % 3 * 5);
-                ctx3.lineTo(ccx + 3 + ci % 4 * 3, gy + 18 + ci % 2 * 8); ctx3.stroke();
+                ctx3.lineTo(ccx + 6 + ci % 5 * 3, gy + 9 + ci % 3 * 4);
+                ctx3.lineTo(ccx + 2 + ci % 4 * 2, gy + 15 + ci % 2 * 6); ctx3.stroke();
             }
             ctx3.restore();
+
+            // DECORATIVE BUSHES
+            for (const bush of g3Bushes) {
+                const bx = bush.x - G3.camX; if (bx < -50 || bx > W3 + 50) continue;
+                const s = bush.size; const sway = Math.sin(G3.frame * .03 + bush.x) * 2;
+                // Bush body
+                ctx3.fillStyle = '#2a5016';
+                ctx3.beginPath(); ctx3.ellipse(bx + sway, gy - 12 * s, 18 * s, 14 * s, 0, 0, Math.PI * 2); ctx3.fill();
+                ctx3.fillStyle = '#3a6a20';
+                ctx3.beginPath(); ctx3.ellipse(bx + sway + 6 * s, gy - 16 * s, 12 * s, 10 * s, 0, 0, Math.PI * 2); ctx3.fill();
+                // Highlight
+                ctx3.fillStyle = 'rgba(80,140,40,.3)';
+                ctx3.beginPath(); ctx3.ellipse(bx + sway - 4 * s, gy - 18 * s, 8 * s, 6 * s, 0, 0, Math.PI * 2); ctx3.fill();
+                // Small flowers on some bushes
+                if (bush.x % 3 === 0) {
+                    ctx3.fillStyle = '#f5c542'; ctx3.beginPath(); ctx3.arc(bx + sway + 5, gy - 22 * s, 2.5 * s, 0, Math.PI * 2); ctx3.fill();
+                    ctx3.fillStyle = '#f59e42'; ctx3.beginPath(); ctx3.arc(bx + sway - 8, gy - 14 * s, 2 * s, 0, Math.PI * 2); ctx3.fill();
+                }
+            }
 
             // Platforms
             for (const pl of g3Platforms) {
@@ -5643,6 +5921,188 @@
                 // Label
                 ctx3.font = 'bold 8px "Share Tech Mono"'; ctx3.fillStyle = 'rgba(250,220,120,.35)'; ctx3.textAlign = 'center';
                 ctx3.fillText('WATCHTOWER', wtx, platTop - railH - 34);
+            }
+
+            // LIGHTHOUSE — tall structure with scared civilians inside
+            const lhx = g3Lighthouse.x - G3.camX;
+            if (lhx > -160 && lhx < W3 + 160) {
+                const lhH = 240, lhW = 36, topW = 24;
+                const lhBase = gy;
+                // Tower body (tapered)
+                ctx3.fillStyle = '#c8c0a8';
+                ctx3.beginPath(); ctx3.moveTo(lhx - lhW / 2, lhBase); ctx3.lineTo(lhx - topW / 2, lhBase - lhH);
+                ctx3.lineTo(lhx + topW / 2, lhBase - lhH); ctx3.lineTo(lhx + lhW / 2, lhBase); ctx3.closePath(); ctx3.fill();
+                // Horizontal bands (red/white stripes)
+                for (let band = 0; band < 6; band++) {
+                    const by1 = lhBase - band * (lhH / 6); const by2 = lhBase - (band + 0.5) * (lhH / 6);
+                    const w1 = lhW / 2 - (band * (lhW - topW) / 12); const w2 = lhW / 2 - ((band + 0.5) * (lhW - topW) / 12);
+                    if (band % 2 === 0) {
+                        ctx3.fillStyle = '#c43030'; ctx3.beginPath();
+                        ctx3.moveTo(lhx - w1, by1); ctx3.lineTo(lhx - w2, by2);
+                        ctx3.lineTo(lhx + w2, by2); ctx3.lineTo(lhx + w1, by1); ctx3.closePath(); ctx3.fill();
+                    }
+                }
+                // Outline
+                ctx3.strokeStyle = '#7a7060'; ctx3.lineWidth = 2;
+                ctx3.beginPath(); ctx3.moveTo(lhx - lhW / 2, lhBase); ctx3.lineTo(lhx - topW / 2, lhBase - lhH);
+                ctx3.lineTo(lhx + topW / 2, lhBase - lhH); ctx3.lineTo(lhx + lhW / 2, lhBase); ctx3.stroke();
+                // Lantern room at top
+                ctx3.fillStyle = '#2a2820'; ctx3.fillRect(lhx - 16, lhBase - lhH - 22, 32, 22);
+                ctx3.strokeStyle = '#5a5040'; ctx3.lineWidth = 1.5; ctx3.strokeRect(lhx - 16, lhBase - lhH - 22, 32, 22);
+                // Glass panes
+                ctx3.fillStyle = 'rgba(250,230,140,.25)'; ctx3.fillRect(lhx - 13, lhBase - lhH - 18, 8, 14);
+                ctx3.fillRect(lhx - 3, lhBase - lhH - 18, 8, 14); ctx3.fillRect(lhx + 7, lhBase - lhH - 18, 8, 14);
+                // Rotating beacon light
+                const beamAngle = (G3.frame * .02) % (Math.PI * 2);
+                ctx3.save(); ctx3.translate(lhx, lhBase - lhH - 11);
+                ctx3.rotate(beamAngle); ctx3.globalAlpha = 0.12;
+                ctx3.fillStyle = '#fde68a'; ctx3.beginPath();
+                ctx3.moveTo(0, 0); ctx3.lineTo(200, -25); ctx3.lineTo(200, 25); ctx3.closePath(); ctx3.fill();
+                ctx3.restore();
+                // Beacon glow
+                const bg = ctx3.createRadialGradient(lhx, lhBase - lhH - 11, 0, lhx, lhBase - lhH - 11, 30);
+                bg.addColorStop(0, 'rgba(250,230,120,.5)'); bg.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx3.fillStyle = bg; ctx3.beginPath(); ctx3.arc(lhx, lhBase - lhH - 11, 30, 0, Math.PI * 2); ctx3.fill();
+                // Dome roof
+                ctx3.fillStyle = '#1a1610'; ctx3.beginPath();
+                ctx3.arc(lhx, lhBase - lhH - 22, 16, Math.PI, 0); ctx3.fill();
+                // Door at base
+                ctx3.fillStyle = '#3a2a14'; g3rr(lhx - 8, lhBase - 30, 16, 30, 3, '#3a2a14');
+                ctx3.strokeStyle = '#5a4020'; ctx3.lineWidth = 1; ctx3.strokeRect(lhx - 8, lhBase - 30, 16, 30);
+                // Scared civilians huddling inside
+                const allLHZDead = g3LighthouseZombies.every(z => z.dead);
+                for (const civ of g3LighthouseCivs) {
+                    const cx = civ.x - G3.camX;
+                    const tremble = civ.scared && !allLHZDead ? Math.sin(G3.frame * .2 + civ.bob * 5) * 2 : 0;
+                    const cy = gy - 28 + tremble;
+                    // Body
+                    ctx3.fillStyle = allLHZDead ? '#4ade80' : '#f59e42';
+                    ctx3.fillRect(cx - 4, cy, 8, 16);
+                    // Head
+                    ctx3.fillStyle = '#e8c89a'; ctx3.beginPath(); ctx3.arc(cx, cy - 4, 5, 0, Math.PI * 2); ctx3.fill();
+                    // Fear indicator
+                    if (!allLHZDead) {
+                        ctx3.fillStyle = '#ef4444'; ctx3.font = '8px sans-serif'; ctx3.textAlign = 'center';
+                        ctx3.fillText('😰', cx, cy - 14);
+                    } else {
+                        ctx3.fillStyle = '#4ade80'; ctx3.font = '8px sans-serif'; ctx3.textAlign = 'center';
+                        ctx3.fillText('😊', cx, cy - 14);
+                    }
+                }
+                // Label
+                ctx3.font = 'bold 8px "Share Tech Mono"'; ctx3.textAlign = 'center';
+                ctx3.fillStyle = allLHZDead ? 'rgba(74,222,128,.6)' : 'rgba(245,158,66,.6)';
+                ctx3.fillText(allLHZDead ? 'LIGHTHOUSE — CIVILIANS SAFE ✓' : 'LIGHTHOUSE — CIVILIANS IN DANGER!', lhx, lhBase - lhH - 38);
+            }
+
+            // CIVILIANS AT SHELTERS — sitting/standing
+            for (const civ of g3ShelterCivs) {
+                const cx = civ.x - G3.camX; if (cx < -30 || cx > W3 + 30) continue;
+                const bob = Math.sin(G3.frame * .02 + civ.bob * 4) * 1;
+                if (civ.type === 'sit') {
+                    // Sitting civilian
+                    ctx3.fillStyle = '#6a9a5a'; ctx3.fillRect(cx - 4, gy - 18 + bob, 8, 12); // body
+                    ctx3.fillStyle = '#e8c89a'; ctx3.beginPath(); ctx3.arc(cx, gy - 22 + bob, 5, 0, Math.PI * 2); ctx3.fill(); // head
+                    ctx3.fillStyle = '#4a7a3a'; ctx3.fillRect(cx - 6, gy - 6, 12, 6); // legs folded
+                } else {
+                    // Standing civilian
+                    ctx3.fillStyle = '#5a80b0'; ctx3.fillRect(cx - 4, gy - 38 + bob, 8, 26); // body
+                    ctx3.fillStyle = '#e8c89a'; ctx3.beginPath(); ctx3.arc(cx, gy - 42 + bob, 5, 0, Math.PI * 2); ctx3.fill(); // head
+                    ctx3.fillStyle = '#3a6090'; ctx3.fillRect(cx - 3, gy - 12, 3, 12); ctx3.fillRect(cx + 1, gy - 12, 3, 12); // legs
+                }
+            }
+
+            // CIVILIANS UNDER TRADER SHACK
+            for (const civ of g3TraderCivs) {
+                const cx = civ.x - G3.camX; if (cx < -30 || cx > W3 + 30) continue;
+                const bob = Math.sin(G3.frame * .025 + civ.bob * 3) * 1;
+                if (civ.type === 'sit') {
+                    ctx3.fillStyle = '#b08040'; ctx3.fillRect(cx - 4, gy - 18 + bob, 8, 12);
+                    ctx3.fillStyle = '#e8c89a'; ctx3.beginPath(); ctx3.arc(cx, gy - 22 + bob, 5, 0, Math.PI * 2); ctx3.fill();
+                    ctx3.fillStyle = '#8a6030'; ctx3.fillRect(cx - 6, gy - 6, 12, 6);
+                } else {
+                    ctx3.fillStyle = '#a06848'; ctx3.fillRect(cx - 4, gy - 38 + bob, 8, 26);
+                    ctx3.fillStyle = '#e8c89a'; ctx3.beginPath(); ctx3.arc(cx, gy - 42 + bob, 5, 0, Math.PI * 2); ctx3.fill();
+                    ctx3.fillStyle = '#804830'; ctx3.fillRect(cx - 3, gy - 12, 3, 12); ctx3.fillRect(cx + 1, gy - 12, 3, 12);
+                }
+            }
+
+            // ANIMAL RESCUE FENCE — trapped animals with guard zombies
+            const fenceX = G3_FENCE_X - G3.camX;
+            if (fenceX > -200 && fenceX < W3 + 200) {
+                const allFenceZDead = g3FenceZombies.every(z => z.dead);
+                const fenceOpen = allFenceZDead;
+                // Fence posts and wire
+                if (!fenceOpen) {
+                    ctx3.strokeStyle = '#8a7050'; ctx3.lineWidth = 3;
+                    // Left and right fence walls
+                    for (let fp = 0; fp <= 4; fp++) {
+                        const fx = fenceX + fp * (G3_FENCE_W / 4);
+                        ctx3.fillStyle = '#6a5030'; ctx3.fillRect(fx - 3, gy - 50, 6, 50);
+                    }
+                    // Horizontal wires
+                    ctx3.strokeStyle = '#aaa'; ctx3.lineWidth = 1;
+                    for (let wy = gy - 45; wy < gy - 5; wy += 12) {
+                        ctx3.beginPath(); ctx3.moveTo(fenceX, wy); ctx3.lineTo(fenceX + G3_FENCE_W, wy); ctx3.stroke();
+                    }
+                    // Barbed wire marks
+                    ctx3.fillStyle = '#888';
+                    for (let bw = 0; bw < 8; bw++) {
+                        const bwx = fenceX + 8 + bw * (G3_FENCE_W / 8);
+                        ctx3.fillRect(bwx, gy - 46, 3, 3);
+                    }
+                }
+                // Trapped animals
+                for (const animal of g3FenceAnimals) {
+                    let ax = animal.freed ? animal.followX - G3.camX : animal.x - G3.camX;
+                    const ay = gy;
+                    const hop = Math.sin(G3.frame * .06 + animal.id * 2) * (animal.freed ? 3 : 1);
+                    switch (animal.type) {
+                        case 'dog':
+                            // Body
+                            ctx3.fillStyle = animal.freed ? '#c5a050' : '#8a6a30';
+                            ctx3.fillRect(ax - 7, ay - 18 + hop, 14, 10);
+                            // Head
+                            ctx3.beginPath(); ctx3.arc(ax + 9, ay - 16 + hop, 5, 0, Math.PI * 2); ctx3.fill();
+                            // Legs
+                            ctx3.fillRect(ax - 6, ay - 8 + hop, 3, 8); ctx3.fillRect(ax + 4, ay - 8 + hop, 3, 8);
+                            // Tail
+                            ctx3.strokeStyle = ctx3.fillStyle; ctx3.lineWidth = 2;
+                            ctx3.beginPath(); ctx3.moveTo(ax - 7, ay - 16 + hop); ctx3.lineTo(ax - 12, ay - 22 + hop); ctx3.stroke();
+                            // Emoji
+                            ctx3.font = '7px sans-serif'; ctx3.textAlign = 'center';
+                            ctx3.fillText(animal.freed ? '🐕' : '😢', ax, ay - 24 + hop);
+                            break;
+                        case 'cat':
+                            ctx3.fillStyle = animal.freed ? '#e0a040' : '#6a5020';
+                            ctx3.fillRect(ax - 5, ay - 14 + hop, 10, 8);
+                            ctx3.beginPath(); ctx3.arc(ax + 6, ay - 12 + hop, 4, 0, Math.PI * 2); ctx3.fill();
+                            // Ears
+                            ctx3.beginPath(); ctx3.moveTo(ax + 3, ay - 16 + hop); ctx3.lineTo(ax + 5, ay - 22 + hop); ctx3.lineTo(ax + 7, ay - 16 + hop); ctx3.fill();
+                            ctx3.fillRect(ax - 4, ay - 6 + hop, 2, 6); ctx3.fillRect(ax + 3, ay - 6 + hop, 2, 6);
+                            ctx3.font = '7px sans-serif'; ctx3.textAlign = 'center';
+                            ctx3.fillText(animal.freed ? '🐈' : '😿', ax, ay - 24 + hop);
+                            break;
+                        case 'rabbit':
+                            ctx3.fillStyle = animal.freed ? '#e8e0d0' : '#a09080';
+                            ctx3.beginPath(); ctx3.ellipse(ax, ay - 10 + hop, 6, 7, 0, 0, Math.PI * 2); ctx3.fill();
+                            ctx3.beginPath(); ctx3.arc(ax + 4, ay - 16 + hop, 4, 0, Math.PI * 2); ctx3.fill();
+                            // Ears
+                            ctx3.fillRect(ax + 1, ay - 26 + hop, 3, 10); ctx3.fillRect(ax + 5, ay - 24 + hop, 3, 8);
+                            ctx3.font = '7px sans-serif'; ctx3.textAlign = 'center';
+                            ctx3.fillText(animal.freed ? '🐇' : '😢', ax, ay - 30 + hop);
+                            break;
+                    }
+                }
+                // Fence label
+                ctx3.font = 'bold 8px "Share Tech Mono"'; ctx3.textAlign = 'center';
+                if (fenceOpen) {
+                    ctx3.fillStyle = 'rgba(74,222,128,.6)';
+                    ctx3.fillText('🐾 ANIMALS RESCUED! ✓', fenceX + G3_FENCE_W / 2, gy - 58);
+                } else {
+                    ctx3.fillStyle = 'rgba(245,158,66,.6)';
+                    ctx3.fillText('⚠ TRAPPED ANIMALS — Kill Zombies to Rescue!', fenceX + G3_FENCE_W / 2, gy - 58);
+                }
             }
 
             // DEBRIS — smashable objects
@@ -6163,6 +6623,15 @@
             g3Arm3.built = false;
             g3Mara.visible = false; g3Mara.moving = false; g3Mara.x = 80;
             G3.armProgress = 0; G3.armBuilt = false; G3.pumpProgress = 0; G3.pumpBuilt = false;
+            // Reset lighthouse zombies and spawn them
+            g3LighthouseZombies.forEach(z => { z.dead = false; z.hp = z.maxHp; z.stun = 0; z.x = z === g3LighthouseZombies[0] ? 2350 : z === g3LighthouseZombies[1] ? 2560 : 2300; });
+            g3LighthouseZombies.forEach(z => g3Zombies.push(z));
+            // Reset fence zombies and spawn them
+            g3FenceZombies.forEach((z, i) => { z.dead = false; z.hp = z.maxHp; z.stun = 0; z.x = i === 0 ? G3_FENCE_X - 50 : i === 1 ? G3_FENCE_X + G3_FENCE_W + 50 : i === 2 ? G3_FENCE_X - 80 : G3_FENCE_X + G3_FENCE_W + 90; });
+            g3FenceZombies.forEach(z => g3Zombies.push(z));
+            // Reset animals
+            g3FenceAnimals.forEach(a => { a.freed = false; a.followTarget = null; a.followX = a.x; });
+            G3._animalsRescued = false;
             // Reset UI panels
             document.getElementById('g3-sword-panel').style.display = 'none';
             document.getElementById('g3-pump-panel').style.display = 'none';
@@ -6193,7 +6662,7 @@
                 if (!G3.running) return;
                 G3.frame++;
                 if (!g3SdgPaused) {
-                    g3Physics(); g3UpdateZombies(); g3UpdatePump(); g3UpdateMara(); g3UpdateRain(); g3UpdateLightning(); g3UpdatePickups();
+                    g3Physics(); g3UpdateZombies(); g3UpdateAnimals(); g3UpdatePump(); g3UpdateMara(); g3UpdateRain(); g3UpdateLightning(); g3UpdatePickups();
                     if (G3.attackCooldown > 0) G3.attackCooldown--;
                     if (G3.swordCooldown > 0) G3.swordCooldown--;
                     if (G3.armInteractCooldown > 0) G3.armInteractCooldown--;
